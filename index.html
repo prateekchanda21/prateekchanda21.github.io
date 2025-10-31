@@ -38,7 +38,7 @@
         <table class="imgtable">
           <tr>
             <td>
-              <a href="./def_Prat.jpeg"><img src="profile_twitter.jpg" alt="alt text" width="265px" height="250px" class="profile-img" /></a>&nbsp;
+              <a href="./def_Prat.jpeg" class="profile-link"><img id="profile-img" src="profile_twitter.jpg" alt="alt text" width="265px" height="250px" class="profile-img" data-hover="def_prat.jpg" data-hover-fallback="def_Prat.jpeg" /></a>&nbsp;
               <p style="margin-top:0.5em;">Email : <u><a href="mailto:prateekkol21@gmail.com">prateekkol21@gmail.com</a></u>, <u><a
                     href="mailto:prateekch@cse.iitb.ac.in">prateekch@cse.iitb.ac.in</a></u></p>
             </td>
@@ -192,6 +192,59 @@
       window.addEventListener('load', function(){ setTimeout(updateIndicator,50); });
       // initial
       updateIndicator();
+    })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      // Swap profile image on hover. Prefers data-hover then data-hover-fallback.
+      var img = document.getElementById('profile-img');
+      if(!img) return;
+      var originalSrc = img.getAttribute('src');
+      var hoverPreferred = img.getAttribute('data-hover');
+      var hoverFallback = img.getAttribute('data-hover-fallback');
+      var hoverSrc = null;
+
+      // Test preferred hover image, then fallback.
+      function testAndSet(src, cb){
+        if(!src) return cb(false);
+        var t = new Image();
+        t.onload = function(){ cb(true); };
+        t.onerror = function(){ cb(false); };
+        t.src = src;
+      }
+
+      testAndSet(hoverPreferred, function(ok){
+        if(ok) hoverSrc = hoverPreferred;
+        else {
+          testAndSet(hoverFallback, function(ok2){ if(ok2) hoverSrc = hoverFallback; });
+        }
+      });
+
+      function fadeSwap(newSrc){
+        if(!newSrc) return;
+        // gentle fade
+        img.style.transition = 'opacity 150ms ease';
+        img.style.opacity = 0;
+        setTimeout(function(){ img.src = newSrc; img.style.opacity = 1; }, 160);
+      }
+
+      function swapToHover(){
+        if(!hoverSrc) return; // nothing available
+        // store original in dataset for restore
+        if(!img.dataset.orig) img.dataset.orig = img.src;
+        fadeSwap(hoverSrc);
+      }
+      function restore(){
+        var o = img.dataset.orig || originalSrc;
+        fadeSwap(o);
+        // clear stored orig after restore
+        delete img.dataset.orig;
+      }
+
+      img.addEventListener('mouseenter', swapToHover);
+      img.addEventListener('focus', swapToHover);
+      img.addEventListener('mouseleave', restore);
+      img.addEventListener('blur', restore);
     })();
   </script>
 </body>

@@ -361,6 +361,12 @@ img {
     border: none;
 }
 
+/* profile image hover swap smoothing */
+.profile-img {
+	display: block;
+	transition: opacity 150ms ease;
+}
+
 table.imgtable, table.imgtable td {
     border: none;
     text-align: left;
