@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Point search engines to the sitemap
+Sitemap: https://prateekchanda21.github.io/sitemap.xml
