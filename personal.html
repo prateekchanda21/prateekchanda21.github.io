@@ -6,6 +6,61 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <link rel="stylesheet" href="jemdoc.css" type="text/css" />
 <title>Personal</title>
+<style type="text/css">
+.trips-section { margin-top: 20px; }
+.trip-block { margin-bottom: 40px; border-bottom: 1px solid #ddd; padding-bottom: 30px; }
+.trip-block:last-child { border-bottom: none; }
+.trip-block h2 { color: #333; margin-bottom: 4px; }
+.trip-meta { color: #888; font-size: 0.9em; margin-bottom: 10px; }
+.trip-desc { margin-bottom: 16px; }
+.photo-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.photo-gallery figure {
+  margin: 0;
+  text-align: center;
+}
+.photo-gallery img {
+  width: 220px;
+  height: 165px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.photo-gallery img:hover { opacity: 0.85; }
+.photo-gallery figcaption {
+  font-size: 0.75em;
+  color: #666;
+  margin-top: 4px;
+  width: 220px;
+}
+#lightbox {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+#lightbox.active { display: flex; }
+#lightbox img { max-width: 90%; max-height: 90%; border-radius: 4px; }
+#lightbox-close {
+  position: fixed;
+  top: 20px; right: 30px;
+  color: #fff;
+  font-size: 2em;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+}
+</style>
 </head>
 <body>
 <table summary="Table for page layout." id="tlayout">
@@ -23,9 +78,133 @@
 <td id="layout-content">
 <div id="toptitle">
 <h1>Personal</h1>
-<div id="subtitle"></div>
 </div>
-TBD
+
+<div class="trips-section">
+<h2>&#127758; Travels</h2>
+
+<div class="trip-block">
+  <h2>NeurIPS 2025 &mdash; San Diego, California, USA</h2>
+  <div class="trip-meta">&#128197; December 6&ndash;7, 2025</div>
+  <p class="trip-desc">
+    Attended <a href="https://neurips.cc/Conferences/2025">NeurIPS 2025</a> in San Diego &mdash;
+    one of the premier machine learning conferences. Beyond the conference, got a chance to explore
+    the beautiful coastal city, including the Gaslamp Quarter, La Jolla, and Torrey Pines.
+  </p>
+  <div class="photo-gallery">
+    <figure>
+      <img src="trip_photos/SD_01.jpg" alt="San Diego 1" onclick="openLightbox(this.src)" />
+      <figcaption>Downtown San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_02.jpg" alt="San Diego 2" onclick="openLightbox(this.src)" />
+      <figcaption>Convention Center area</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_03.jpg" alt="San Diego 3" onclick="openLightbox(this.src)" />
+      <figcaption>San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_04.jpg" alt="San Diego 4" onclick="openLightbox(this.src)" />
+      <figcaption>San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_05.jpg" alt="San Diego 5" onclick="openLightbox(this.src)" />
+      <figcaption>Coastal San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_06.jpg" alt="San Diego 6" onclick="openLightbox(this.src)" />
+      <figcaption>Coastal San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_07.jpg" alt="San Diego 7" onclick="openLightbox(this.src)" />
+      <figcaption>San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_08.jpg" alt="San Diego 8" onclick="openLightbox(this.src)" />
+      <figcaption>San Diego</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_09.jpg" alt="San Diego 9" onclick="openLightbox(this.src)" />
+      <figcaption>San Diego North</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/SD_10.jpg" alt="San Diego 10" onclick="openLightbox(this.src)" />
+      <figcaption>San Diego North</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="trip-block">
+  <h2>Morocco Road Trip &mdash; Tetouan, Asilah &amp; Casablanca</h2>
+  <div class="trip-meta">&#128197; May 1&ndash;6, 2026</div>
+  <p class="trip-desc">
+    A road trip through northern Morocco &mdash; exploring the walled medina of Tetouan (a UNESCO World Heritage Site),
+    the artistic Atlantic coastal town of Asilah, and ending at Casablanca.
+    Stunning mix of Andalusian architecture, Atlantic coastline, and vibrant street life.
+  </p>
+  <div class="photo-gallery">
+    <figure>
+      <img src="trip_photos/IMG_1028.jpg" alt="Tetouan 1" onclick="openLightbox(this.src)" />
+      <figcaption>Houara, Tetouan area</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1039.jpg" alt="Tetouan 2" onclick="openLightbox(this.src)" />
+      <figcaption>Houara, Tetouan area</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1050.jpg" alt="Tetouan 3" onclick="openLightbox(this.src)" />
+      <figcaption>Houara, Tetouan area</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1060.jpg" alt="Tetouan 4" onclick="openLightbox(this.src)" />
+      <figcaption>Houara, Tetouan area</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1067.jpg" alt="Asilah 1" onclick="openLightbox(this.src)" />
+      <figcaption>Asilah, Atlantic coast</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1068.jpg" alt="Asilah 2" onclick="openLightbox(this.src)" />
+      <figcaption>Asilah, Atlantic coast</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1071.jpg" alt="Coastal road" onclick="openLightbox(this.src)" />
+      <figcaption>Atlantic coast south of Asilah</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1078.jpg" alt="Atlantic coastline" onclick="openLightbox(this.src)" />
+      <figcaption>Atlantic coastline</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1086.jpg" alt="Mohammedia" onclick="openLightbox(this.src)" />
+      <figcaption>Mohammedia, near Casablanca</figcaption>
+    </figure>
+    <figure>
+      <img src="trip_photos/IMG_1093.jpg" alt="Casablanca" onclick="openLightbox(this.src)" />
+      <figcaption>Nouaceur, Casablanca</figcaption>
+    </figure>
+  </div>
+</div>
+
+</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <span id="lightbox-close" onclick="closeLightbox()">&times;</span>
+  <img id="lightbox-img" src="" alt="Full size" onclick="event.stopPropagation()" />
+</div>
+<script type="text/javascript">
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.getElementById('lightbox-img').src = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
+</script>
+
 </td>
 </tr>
 </table>
