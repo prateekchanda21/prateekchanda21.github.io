@@ -3,19 +3,19 @@
 table#tlayout {
     border: none;
     border-collapse: separate;
-    background: white;
+    background: #f5f2fa;
 }
 
 body {
-	background: white;
+	background: #f5f2fa;
 	font-family: Georgia, serif;
 	padding-bottom: 8px;
 	margin: 0;
 }
 
 #layout-menu {
-	background: #f6f6f6;
-	border: 1px solid #dddddd;
+	background: #ede8f5;
+	border: 1px solid #d5cde0;
 	padding-top: 0.5em;
 	padding-left: 8px;
 	padding-right: 8px;
@@ -27,7 +27,7 @@ body {
 }
 
 #layout-menu td {
-	background: #f4f4f4;
+	background: #e8e2f0;
     vertical-align: top;
 }
 
@@ -36,7 +36,7 @@ body {
 	padding-left: 1.0em;
 	padding-right: 1.0em;
     border: none;
-    background: white;
+    background: #f5f2fa;
     text-align: left;
     vertical-align: top;
 }
