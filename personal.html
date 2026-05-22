@@ -135,7 +135,7 @@
     <figure><img src="trip_photos/SD_09.jpg" alt="San Diego 9" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
     <figure><img src="trip_photos/SD_10.jpg" alt="San Diego 10" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
   </div>
-  <span class="more-toggle" onclick="toggleMore(this, 'sd-more')"><span class="icon">+</span> 10 more photos</span> 8 more photos</span>
+  <span class="more-toggle" onclick="toggleMore(this, 'sd-more')"><span class="icon">+</span> more photos</span>
   <div class="more-photos" id="sd-more">
     <figure><img src="trip_photos/SD_11.jpg" alt="San Diego 11" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
     <figure><img src="trip_photos/SD_12.jpg" alt="San Diego 12" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
@@ -171,7 +171,7 @@
     <figure><img src="trip_photos/VN_09.jpg" alt="Vienna 9" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
     <figure><img src="trip_photos/VN_10.jpg" alt="Vienna 10" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
   </div>
-  <span class="more-toggle" onclick="toggleMore(this, 'vn-more')"><span class="icon">+</span> 8 more photos</span>
+  <span class="more-toggle" onclick="toggleMore(this, 'vn-more')"><span class="icon">+</span> more photos</span>
   <div class="more-photos" id="vn-more">
     <figure><img src="trip_photos/VN_11.jpg" alt="Vienna 11" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
     <figure><img src="trip_photos/VN_12.jpg" alt="Vienna 12" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
@@ -208,7 +208,7 @@
     <figure><img src="trip_photos/MA_12.jpg" alt="Morocco 12" onclick="openLightbox(this.src)" /><figcaption>Houara, Tetouan area</figcaption></figure>
     <figure><img src="trip_photos/MA_13.jpg" alt="Morocco 13" onclick="openLightbox(this.src)" /><figcaption>Tetouan area</figcaption></figure>
   </div>
-  <span class="more-toggle" onclick="toggleMore(this, 'ma-more')"><span class="icon">+</span> 8 more photos</span>
+  <span class="more-toggle" onclick="toggleMore(this, 'ma-more')"><span class="icon">+</span> more photos</span>
   <div class="more-photos" id="ma-more">
     <figure><img src="trip_photos/MA_14.jpg" alt="Morocco 14" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
     <figure><img src="trip_photos/MA_15.jpg" alt="Morocco 15" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
@@ -234,7 +234,7 @@ function toggleMore(btn, id) {
   var panel = document.getElementById(id);
   var open = panel.classList.toggle('open');
   btn.classList.toggle('open', open);
-  var label = open ? '8 fewer photos' : '8 more photos';
+  var label = open ? 'fewer photos' : 'more photos';
   btn.innerHTML = '<span class="icon">' + (open ? '+' : '+') + '</span> ' + label;
 }
 function openLightbox(src) {
