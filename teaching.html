@@ -5,6 +5,87 @@
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <link rel="stylesheet" href="jemdoc.css" type="text/css" />
   <title>Teaching Assignments by Year</title>
+  <style>
+    .teach-year {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 32px 0 10px 0;
+    }
+    .teach-year-badge {
+      background: #6b5b7b;
+      color: #fff;
+      font-size: 1.15em;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 3px 16px;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+    .teach-year-line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(to right, #d5cde0, transparent);
+      border-radius: 2px;
+    }
+    .teach-semester-label {
+      display: inline-block;
+      font-size: 0.78em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #9b8faa;
+      margin: 14px 0 6px 0;
+      border-left: 3px solid #9b8faa;
+      padding-left: 8px;
+    }
+    .teach-cards {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 6px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .teach-card {
+      background: #faf9fc;
+      border: 1px solid #e8e2f0;
+      border-left: 4px solid #6b5b7b;
+      border-radius: 6px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .teach-card.pmrf {
+      border-left-color: #a08cb5;
+      background: #f5f2fa;
+    }
+    .teach-card-title {
+      font-weight: 700;
+      font-size: 0.97em;
+      color: #2c2c2c;
+      text-decoration: none;
+    }
+    .teach-card-title:hover { color: #6b5b7b; text-decoration: underline; }
+    .teach-card-meta {
+      font-size: 0.84em;
+      color: #777;
+      margin-top: 1px;
+    }
+    .pmrf-tag {
+      display: inline-block;
+      font-size: 0.72em;
+      font-weight: 700;
+      background: #ede7f6;
+      color: #6b5b7b;
+      border-radius: 3px;
+      padding: 1px 7px;
+      margin-right: 6px;
+      vertical-align: middle;
+      letter-spacing: 0.5px;
+    }
+  </style>
 </head>
 <body>
 <table summary="Table for page layout." id="tlayout">
@@ -26,76 +107,87 @@
     <div id="subtitle"></div>
   </div>
 
-  <h2>2026</h2>
-  <h4>Spring Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS218: Design and Analysis of Algorithms</a><br/>Course Instructor: Sujoy Bhore</p>
+  <!-- 2026 -->
+  <div class="teach-year"><span class="teach-year-badge">2026</span><span class="teach-year-line"></span></div>
+  <div class="teach-semester-label">Spring Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS218: Design and Analysis of Algorithms</a>
+      <span class="teach-card-meta">Course Instructor: Sujoy Bhore</span>
     </li>
   </ul>
 
-  <h2>2025</h2>
-  <h4>Spring Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS 769 : Optimization in Machine Learning</a><br/>Course Instructor: Ganesh Ramakrishnan</p>
+  <!-- 2025 -->
+  <div class="teach-year"><span class="teach-year-badge">2025</span><span class="teach-year-line"></span></div>
+  <div class="teach-semester-label">Spring Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS 769: Optimization in Machine Learning</a>
+      <span class="teach-card-meta">Course Instructor: Ganesh Ramakrishnan</span>
+    </li>
+  </ul>
+  <div class="teach-semester-label">Autumn Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS 419M: Introduction to Machine Learning</a>
+      <span class="teach-card-meta">Course Instructor: Ganesh Ramakrishnan</span>
+    </li>
+    <li class="teach-card pmrf">
+      <span class="teach-card-title"><span class="pmrf-tag">PMRF</span>Subset Selection for Large Language Models</span>
+      <span class="teach-card-meta">Course Instructor: Prateek Chanda</span>
     </li>
   </ul>
 
-  <h4>Autumn Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS 419M : Introduction to Machine Learning</a><br/>Course Instructor: Ganesh Ramakrishnan</p>
+  <!-- 2024 -->
+  <div class="teach-year"><span class="teach-year-badge">2024</span><span class="teach-year-line"></span></div>
+  <div class="teach-semester-label">Spring Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS 769: Optimization in Machine Learning</a>
+      <span class="teach-card-meta">Course Instructor: Ganesh Ramakrishnan</span>
     </li>
-    <li>
-      <p><a href="">PMRF TA-ship: Subset Selection for Large Language Models</a><br/>Course Instructor: Prateek Chanda</p>
+  </ul>
+  <div class="teach-semester-label">Autumn Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card pmrf">
+      <span class="teach-card-title"><span class="pmrf-tag">PMRF</span>Convex Optimization &amp; Submodular Methods</span>
+      <span class="teach-card-meta">Course Instructor: Prateek Chanda</span>
+    </li>
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS602: Applied Algorithms</a>
+      <span class="teach-card-meta">Course Instructor: Sujoy Bhore</span>
     </li>
   </ul>
 
-  <h2>2024</h2>
-  <h4>Spring Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS 769 : Optimization in Machine Learning</a><br/>Course Instructor: Ganesh Ramakrishnan</p>
+  <!-- 2023 -->
+  <div class="teach-year"><span class="teach-year-badge">2023</span><span class="teach-year-line"></span></div>
+  <div class="teach-semester-label">Autumn Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS105: Discrete Structures</a>
+      <span class="teach-card-meta">Course Instructor: S. Akshay</span>
+    </li>
+    <li class="teach-card pmrf">
+      <span class="teach-card-title"><span class="pmrf-tag">PMRF</span>Advanced Topics in Machine Learning</span>
+      <span class="teach-card-meta">Course Instructor: Prateek Chanda</span>
+    </li>
+  </ul>
+  <div class="teach-semester-label">Spring Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS419M: Introduction to Machine Learning</a>
     </li>
   </ul>
 
-  <h4>Autumn Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">PMRF TA-ship: Convex Optimization &amp; Submodular Methods</a><br/>Course Instructor: Prateek Chanda</p>
+  <!-- 2022 -->
+  <div class="teach-year"><span class="teach-year-badge">2022</span><span class="teach-year-line"></span></div>
+  <div class="teach-semester-label">Autumn Semester</div>
+  <ul class="teach-cards">
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS335: Artificial Intelligence and Machine Learning</a>
     </li>
-    <li>
-      <p><a href="">CS602: Applied Algorithms</a><br/>Course Instructor: Sujoy Bhore</p>
-    </li>
-  </ul>
-
-  <h2>2023</h2>
-  <h4>Autumn Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS105: Discrete Structures</a><br/>Course Instructor: S. Akshay</p>
-    </li>
-    <li>
-      <p><a href="">PMRF TA-ship: Advanced Topics in Machine Learning</a><br/>Course Instructor: Prateek Chanda</p>
-    </li>
-  </ul>
-
-  <h4>Spring Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS419M: Introduction to Machine Learning</a></p>
-    </li>
-  </ul>
-
-  <h2>2022</h2>
-  <h4>Autumn Semester</h4>
-  <ul>
-    <li>
-      <p><a href="">CS335: Artificial Intelligence and Machine Learning</a></p>
-    </li>
-    <li>
-      <p><a href="">CS337: Artificial Intelligence and Machine Learning Lab</a></p>
+    <li class="teach-card">
+      <a class="teach-card-title" href="">CS337: Artificial Intelligence and Machine Learning Lab</a>
     </li>
   </ul>
 </td>
