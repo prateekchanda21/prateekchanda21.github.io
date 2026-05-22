@@ -39,23 +39,50 @@
   margin-top: 4px;
   width: 220px;
 }
+/* More photos expand section */
+.more-photos { display: none; margin-top: 10px; }
+.more-photos.open { display: flex; flex-wrap: wrap; gap: 10px; }
+.more-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  cursor: pointer;
+  color: #555;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 4px 14px;
+  background: #f9f9f9;
+  user-select: none;
+  transition: background 0.15s;
+}
+.more-toggle:hover { background: #eee; }
+.more-toggle .icon {
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.more-toggle.open .icon { transform: rotate(45deg); }
+/* Lightbox */
 #lightbox {
   display: none;
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,0.87);
   z-index: 1000;
   justify-content: center;
   align-items: center;
 }
 #lightbox.active { display: flex; }
-#lightbox img { max-width: 90%; max-height: 90%; border-radius: 4px; }
+#lightbox img { max-width: 92%; max-height: 92%; border-radius: 4px; }
 #lightbox-close {
   position: fixed;
-  top: 20px; right: 30px;
+  top: 18px; right: 26px;
   color: #fff;
-  font-size: 2em;
+  font-size: 2.2em;
   cursor: pointer;
   font-weight: bold;
   line-height: 1;
@@ -83,6 +110,7 @@
 <div class="trips-section">
 <h2>&#127758; Travels</h2>
 
+<!-- NeurIPS San Diego -->
 <div class="trip-block">
   <h2>NeurIPS 2025 &mdash; San Diego, California, USA</h2>
   <div class="trip-meta">&#128197; December 6&ndash;7, 2025</div>
@@ -92,50 +120,31 @@
     the beautiful coastal city, including the Gaslamp Quarter, La Jolla, and Torrey Pines.
   </p>
   <div class="photo-gallery">
-    <figure>
-      <img src="trip_photos/SD_01.jpg" alt="San Diego 1" onclick="openLightbox(this.src)" />
-      <figcaption>Downtown San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_02.jpg" alt="San Diego 2" onclick="openLightbox(this.src)" />
-      <figcaption>Convention Center area</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_03.jpg" alt="San Diego 3" onclick="openLightbox(this.src)" />
-      <figcaption>San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_04.jpg" alt="San Diego 4" onclick="openLightbox(this.src)" />
-      <figcaption>San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_05.jpg" alt="San Diego 5" onclick="openLightbox(this.src)" />
-      <figcaption>Coastal San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_06.jpg" alt="San Diego 6" onclick="openLightbox(this.src)" />
-      <figcaption>Coastal San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_07.jpg" alt="San Diego 7" onclick="openLightbox(this.src)" />
-      <figcaption>San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_08.jpg" alt="San Diego 8" onclick="openLightbox(this.src)" />
-      <figcaption>San Diego</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_09.jpg" alt="San Diego 9" onclick="openLightbox(this.src)" />
-      <figcaption>San Diego North</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/SD_10.jpg" alt="San Diego 10" onclick="openLightbox(this.src)" />
-      <figcaption>San Diego North</figcaption>
-    </figure>
+    <figure><img src="trip_photos/SD_01.jpg" alt="San Diego 1" onclick="openLightbox(this.src)" /><figcaption>Downtown San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_02.jpg" alt="San Diego 2" onclick="openLightbox(this.src)" /><figcaption>Convention Center area</figcaption></figure>
+    <figure><img src="trip_photos/SD_03.jpg" alt="San Diego 3" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_04.jpg" alt="San Diego 4" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_05.jpg" alt="San Diego 5" onclick="openLightbox(this.src)" /><figcaption>Coastal San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_06.jpg" alt="San Diego 6" onclick="openLightbox(this.src)" /><figcaption>Coastal San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_07.jpg" alt="San Diego 7" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_08.jpg" alt="San Diego 8" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_09.jpg" alt="San Diego 9" onclick="openLightbox(this.src)" /><figcaption>San Diego North</figcaption></figure>
+    <figure><img src="trip_photos/SD_10.jpg" alt="San Diego 10" onclick="openLightbox(this.src)" /><figcaption>San Diego North</figcaption></figure>
+  </div>
+  <span class="more-toggle" onclick="toggleMore(this, 'sd-more')"><span class="icon">+</span> 8 more photos</span>
+  <div class="more-photos" id="sd-more">
+    <figure><img src="trip_photos/SD_11.jpg" alt="San Diego 11" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_12.jpg" alt="San Diego 12" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_13.jpg" alt="San Diego 13" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_14.jpg" alt="San Diego 14" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_15.jpg" alt="San Diego 15" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_16.jpg" alt="San Diego 16" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_17.jpg" alt="San Diego 17" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
+    <figure><img src="trip_photos/SD_18.jpg" alt="San Diego 18" onclick="openLightbox(this.src)" /><figcaption>San Diego</figcaption></figure>
   </div>
 </div>
 
-
+<!-- ICLR Vienna -->
 <div class="trip-block">
   <h2>ICLR 2024 &mdash; Vienna, Austria</h2>
   <div class="trip-meta">&#128197; May 2024</div>
@@ -145,49 +154,31 @@
     stunning imperial architecture, world-class museums, coffee house culture, and the beautiful Danube.
   </p>
   <div class="photo-gallery">
-    <figure>
-      <img src="trip_photos/VN_01.jpg" alt="Vienna 1" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_02.jpg" alt="Vienna 2" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_03.jpg" alt="Vienna 3" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_04.jpg" alt="Vienna 4" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_05.jpg" alt="Vienna 5" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_06.jpg" alt="Vienna 6" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_07.jpg" alt="Vienna 7" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_08.jpg" alt="Vienna 8" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_09.jpg" alt="Vienna 9" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/VN_10.jpg" alt="Vienna 10" onclick="openLightbox(this.src)" />
-      <figcaption>Vienna</figcaption>
-    </figure>
+    <figure><img src="trip_photos/VN_01.jpg" alt="Vienna 1" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_02.jpg" alt="Vienna 2" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_03.jpg" alt="Vienna 3" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_04.jpg" alt="Vienna 4" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_05.jpg" alt="Vienna 5" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_06.jpg" alt="Vienna 6" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_07.jpg" alt="Vienna 7" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_08.jpg" alt="Vienna 8" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_09.jpg" alt="Vienna 9" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_10.jpg" alt="Vienna 10" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+  </div>
+  <span class="more-toggle" onclick="toggleMore(this, 'vn-more')"><span class="icon">+</span> 8 more photos</span>
+  <div class="more-photos" id="vn-more">
+    <figure><img src="trip_photos/VN_11.jpg" alt="Vienna 11" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_12.jpg" alt="Vienna 12" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_13.jpg" alt="Vienna 13" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_14.jpg" alt="Vienna 14" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_15.jpg" alt="Vienna 15" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_16.jpg" alt="Vienna 16" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_17.jpg" alt="Vienna 17" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
+    <figure><img src="trip_photos/VN_18.jpg" alt="Vienna 18" onclick="openLightbox(this.src)" /><figcaption>Vienna</figcaption></figure>
   </div>
 </div>
 
+<!-- Morocco -->
 <div class="trip-block">
   <h2>Morocco Road Trip &mdash; Tetouan, Asilah &amp; Casablanca</h2>
   <div class="trip-meta">&#128197; May 1&ndash;6, 2026</div>
@@ -197,68 +188,49 @@
     Stunning mix of Andalusian architecture, Atlantic coastline, and vibrant street life.
   </p>
   <div class="photo-gallery">
-    <figure>
-      <img src="trip_photos/MA_01.jpg" alt="Morocco 1" onclick="openLightbox(this.src)" />
-      <figcaption>Near Casablanca</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_02.jpg" alt="Morocco 2" onclick="openLightbox(this.src)" />
-      <figcaption>Casablanca area</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_03.jpg" alt="Morocco 3" onclick="openLightbox(this.src)" />
-      <figcaption>Casablanca area</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_04.jpg" alt="Morocco 4" onclick="openLightbox(this.src)" />
-      <figcaption>Casablanca area</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_05.jpg" alt="Morocco 5" onclick="openLightbox(this.src)" />
-      <figcaption>Nouaceur, Casablanca</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_06.jpg" alt="Morocco 6" onclick="openLightbox(this.src)" />
-      <figcaption>Mohammedia</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_07.jpg" alt="Morocco 7" onclick="openLightbox(this.src)" />
-      <figcaption>Coastal road</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_08.jpg" alt="Morocco 8" onclick="openLightbox(this.src)" />
-      <figcaption>Atlantic coast</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_09.jpg" alt="Morocco 9" onclick="openLightbox(this.src)" />
-      <figcaption>Asilah area</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_10.jpg" alt="Morocco 10" onclick="openLightbox(this.src)" />
-      <figcaption>Asilah, Atlantic coast</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_11.jpg" alt="Morocco 11" onclick="openLightbox(this.src)" />
-      <figcaption>Atlantic coastline</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_12.jpg" alt="Morocco 12" onclick="openLightbox(this.src)" />
-      <figcaption>Houara, Tetouan area</figcaption>
-    </figure>
-    <figure>
-      <img src="trip_photos/MA_13.jpg" alt="Morocco 13" onclick="openLightbox(this.src)" />
-      <figcaption>Tetouan area</figcaption>
-    </figure>
-</div>
+    <figure><img src="trip_photos/MA_01.jpg" alt="Morocco 1" onclick="openLightbox(this.src)" /><figcaption>Near Casablanca</figcaption></figure>
+    <figure><img src="trip_photos/MA_02.jpg" alt="Morocco 2" onclick="openLightbox(this.src)" /><figcaption>Casablanca area</figcaption></figure>
+    <figure><img src="trip_photos/MA_03.jpg" alt="Morocco 3" onclick="openLightbox(this.src)" /><figcaption>Casablanca area</figcaption></figure>
+    <figure><img src="trip_photos/MA_04.jpg" alt="Morocco 4" onclick="openLightbox(this.src)" /><figcaption>Casablanca area</figcaption></figure>
+    <figure><img src="trip_photos/MA_05.jpg" alt="Morocco 5" onclick="openLightbox(this.src)" /><figcaption>Nouaceur, Casablanca</figcaption></figure>
+    <figure><img src="trip_photos/MA_06.jpg" alt="Morocco 6" onclick="openLightbox(this.src)" /><figcaption>Mohammedia</figcaption></figure>
+    <figure><img src="trip_photos/MA_07.jpg" alt="Morocco 7" onclick="openLightbox(this.src)" /><figcaption>Coastal road</figcaption></figure>
+    <figure><img src="trip_photos/MA_08.jpg" alt="Morocco 8" onclick="openLightbox(this.src)" /><figcaption>Atlantic coast</figcaption></figure>
+    <figure><img src="trip_photos/MA_09.jpg" alt="Morocco 9" onclick="openLightbox(this.src)" /><figcaption>Asilah area</figcaption></figure>
+    <figure><img src="trip_photos/MA_10.jpg" alt="Morocco 10" onclick="openLightbox(this.src)" /><figcaption>Asilah, Atlantic coast</figcaption></figure>
+    <figure><img src="trip_photos/MA_11.jpg" alt="Morocco 11" onclick="openLightbox(this.src)" /><figcaption>Atlantic coastline</figcaption></figure>
+    <figure><img src="trip_photos/MA_12.jpg" alt="Morocco 12" onclick="openLightbox(this.src)" /><figcaption>Houara, Tetouan area</figcaption></figure>
+    <figure><img src="trip_photos/MA_13.jpg" alt="Morocco 13" onclick="openLightbox(this.src)" /><figcaption>Tetouan area</figcaption></figure>
+  </div>
+  <span class="more-toggle" onclick="toggleMore(this, 'ma-more')"><span class="icon">+</span> 8 more photos</span>
+  <div class="more-photos" id="ma-more">
+    <figure><img src="trip_photos/MA_14.jpg" alt="Morocco 14" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_15.jpg" alt="Morocco 15" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_16.jpg" alt="Morocco 16" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_17.jpg" alt="Morocco 17" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_18.jpg" alt="Morocco 18" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_19.jpg" alt="Morocco 19" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_20.jpg" alt="Morocco 20" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+    <figure><img src="trip_photos/MA_21.jpg" alt="Morocco 21" onclick="openLightbox(this.src)" /><figcaption>Morocco</figcaption></figure>
+  </div>
 </div>
 
-</div>
+</div><!-- trips-section -->
 
+<!-- Lightbox -->
 <div id="lightbox" onclick="closeLightbox()">
   <span id="lightbox-close" onclick="closeLightbox()">&times;</span>
-  <img id="lightbox-img" src="" alt="Full size" onclick="event.stopPropagation()" />
+  <img id="lightbox-img" src="" alt="Full size photo" onclick="event.stopPropagation()" />
 </div>
+
 <script type="text/javascript">
+function toggleMore(btn, id) {
+  var panel = document.getElementById(id);
+  var open = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  var label = open ? '8 fewer photos' : '8 more photos';
+  btn.innerHTML = '<span class="icon">' + (open ? '+' : '+') + '</span> ' + label;
+}
 function openLightbox(src) {
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox').classList.add('active');
