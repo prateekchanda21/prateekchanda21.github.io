@@ -18,11 +18,13 @@
   flex-wrap: wrap;
   gap: 10px;
 }
-.photo-gallery figure {
+.photo-gallery figure,
+.more-photos figure {
   margin: 0;
   text-align: center;
 }
-.photo-gallery img {
+.photo-gallery img,
+.more-photos img {
   width: 220px;
   height: 165px;
   object-fit: cover;
@@ -32,8 +34,10 @@
   cursor: pointer;
   transition: opacity 0.2s;
 }
-.photo-gallery img:hover { opacity: 0.85; }
-.photo-gallery figcaption {
+.photo-gallery img:hover,
+.more-photos img:hover { opacity: 0.85; }
+.photo-gallery figcaption,
+.more-photos figcaption {
   font-size: 0.75em;
   color: #666;
   margin-top: 4px;
