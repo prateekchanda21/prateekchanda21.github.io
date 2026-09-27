@@ -315,6 +315,28 @@ ul {
   margin-top: .1em;
 }
 
+.internship-credit {
+  margin-left: 1em;
+  margin-right: 1.2em;
+  text-align: right;
+  white-space: nowrap;
+  color: #a00;
+  font-size: 12px;
+}
+
+.publication-meta-row {
+  align-items: baseline;
+  display: flex;
+  justify-content: flex-start;
+  gap: 1em;
+}
+
+.publication-workshops {
+  margin-top: .15em;
+  color: #777;
+  font-size: 12px;
+}
+
 .year {
   font-size: 20px;
   margin-bottom: -.6em;
