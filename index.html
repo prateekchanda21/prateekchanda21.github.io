@@ -26,14 +26,14 @@
 	<link rel="stylesheet" type="text/css" media="screen" href="css/normalize.css" />
 	<link rel="stylesheet" type="text/css" media="screen" href="css/main.css" />
 	<script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-	<script src=https://prateekchanda21.github.io/js/feather.min.js></script><script src=https://prateekchanda21.github.io/js/main.js></script>
+	<script src=https://prateekchanda21.github.io/js/feather.min.js></script><script src="js/main.js"></script>
 </head>
 
 
 	<body>
 		<div class="container wrapper">
 			<div class="header">
-	<img src=profile_github.jpg class="profile_image">
+	<img src=prateekChanda_profile.jpg class="profile_image">
 	<h1 class="site-title">Prateek Chanda</h1>
 	<div class="site-affilation">
 		<span class="affilation"><ul class="flat">
@@ -69,7 +69,7 @@
 					<br>
 					<br>
 					I have been a <b>Student Researcher (twice)</b> at <a href="https://research.google/teams/india-research-lab/" target="_blank"><b>Google DeepMind India</b></a>,
-					hosted by <a href="https://sites.google.com/site/pshenoyuw/" target="_blank">Pradeep Shenoy</a> during (<i>July 2023&ndash;Nov 2023</i> &amp; <i>Dec 2023&ndash;May 2024</i>),
+					hosted by <a href="https://sites.google.com/site/pshenoyuw/" target="_blank">Pradeep Shenoy</a> during (<a href="google%20first%20certificate.jpg" target="_blank" rel="noopener"><i>July 2023&ndash;Nov 2023</i></a> &amp; <a href="googleSecondCertificate.jpg" target="_blank" rel="noopener"><i>Dec 2023&ndash;May 2024</i></a>),
 					working on Efficient Pretraining of Large Language Models and Knowledge Distillation for Large Language Models for <b>proprietary Gemini and LaMDA models</b>.
 					During my time at DeepMind, I had the pleasure of working with and being mentored by <a href="https://dheerajnagaraj.com/" target="_blank">Dheeraj Nagaraj</a>,
 					<a href="https://www.cs.cmu.edu/~asuggala/" target="_blank">Arun Suggala</a> and <a href="https://www.prateekjain.org/" target="_blank">Prateek Jain</a>.
@@ -83,14 +83,13 @@
 					(see our <a href="https://arxiv.org/pdf/2602.11202" target="_blank">work on Interwhen</a>).
 					<br>
 					<br>
-					The central theme of my research is building efficient and scalable machine learning systems.
-					My work spans efficient LLM pretraining and fine-tuning (<a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">1</a>), continual learning (<a href="https://arxiv.org/abs/2504.07097" target="_blank">2</a>), and submodular methods for data selection (<a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">3</a>).
-					Going forward, I am broadly interested in the following research directions for improving the capabilities and reliability of large models.
+					My research develops optimization and statistical methods for improving learning under data, computation, and deployment constraints. I study three decision points in the learning pipeline: what data to learn from, how models should adapt, and how to evaluate or constrain their outputs. Across these settings, I seek formulations that make task structure explicit and expose measurable trade-offs, with formal guarantees where possible:
 					<ul>
-						<li><strong>Efficient LLM pretraining and post-training.</strong> I am interested in data selection objectives and training strategies that improve sample efficiency for large language models, especially under data and compute constraints. A direction I find especially promising is minibatch selection strategies via that aim to select train models with fewer batch sizes via different selection mechanisms .</li>
-						<li><strong>Continual and federated learning.</strong> I am interested in methods for continual learning that enable models to adapt over time without catastrophic forgetting, and in federated approaches for personalized learning. I am especially interested in constrained fine-tuning methods that preserve previously learned knowledge.</li>
-						<li><strong>Knowledge distillation and model compression.</strong> I am interested in robust distillation techniques that improve the efficiency and reliability of smaller models trained from large teacher models, including robustness to early-layer representations.</li>
+						<li><strong>Structured data selection.</strong> I formulate subset selection as structured optimization rather than relying on fixed importance scores. Examples include <a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">bandit-guided submodular curriculum selection</a>, <a href="https://arxiv.org/abs/2606.07954" target="_blank">validation-guided gradient matching under partition-matroid budgets</a>, and <a href="https://arxiv.org/pdf/2604.10952" target="_blank">uniform prototype selection via partial optimal transport and submodular optimization</a>. I extend this perspective to <a href="https://openreview.net/forum?id=5jFAnGBUXd" target="_blank">graph-structured allocation of language-model training data</a> and <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">coreset-based personalization in federated learning</a>.</li>
+						<li><strong>Continual learning and distribution shift.</strong> Learning over time requires balancing plasticity against retention and robustness. In continual learning, <a href="https://arxiv.org/abs/2504.07097" target="_blank">Sculpting Subspaces</a> constrains full fine-tuning updates to reduce interference with previously learned tasks. For changing data, <a href="https://openreview.net/forum?id=DlL73vEtwX" target="_blank">online distributional prediction under drift and corruption</a> studies how latent cluster structure can support robust prediction. In federated learning, <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">Bayesian client-specific coresets</a> address personalization by selecting representative data for each client rather than training on each client's full dataset.</li>
+						<li><strong>Reliable and verifiable model behavior.</strong> I also study how to align model behavior with task-level requirements. <a href="https://arxiv.org/pdf/2602.11202" target="_blank">Interwhen</a> uses test-time verification to steer reasoning models; <a href="https://aclanthology.org/2024.findings-emnlp.31/" target="_blank">ClinicR</a> develops reasoning-based prompting for open-ended medical question answering; and <a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank">FairPO</a> addresses fairness in multi-label preference optimization. Together, these works treat reliability, not only predictive accuracy, as an explicit design objective.</li>
 					</ul>
+					Across these lines, my goal is to develop learning algorithms whose use of data, updates, and computation is explicit and principled: improving sample efficiency while maintaining coverage, enabling adaptation while controlling interference, and making model outputs more verifiable and aligned with the task.
 
 					Before my Ph.D., I was a Research Software Engineer (SCAI Fellow) at <a href="https://www.microsoft.com/en-us/research/lab/microsoft-research-india/" target="_blank"><b>Microsoft Research India Bangalore</b></a>,
 					hosted by <a href="https://www.microsoft.com/en-us/research/people/amshar/" target="_blank">Amit Sharma</a> and <a href="https://www.microsoft.com/en-us/research/people/vachand/" target="_blank">Vageesh Chandramouli</a>.
@@ -128,7 +127,7 @@
 			</span>
 		</li>
 		
-		<li>	
+		<li>
 			<a href="https://openreview.net/forum?id=5jFAnGBUXd" class="publications" target="_blank">From Task Graphs to Training Mixtures: Graph-Structured Data Allocation for Language Models</a>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>, Saral Sureka, Ganesh Ramakrishnan
@@ -140,7 +139,7 @@
 				[<a href="https://openreview.net/pdf?id=5jFAnGBUXd" target="_blank">pdf</a>]
 			</span>
 		</li>
-		<li>	
+		<li>
 
 			<a href="https://openreview.net/" class="publications" target="_blank">Online Distributional Prediction via Latent Cluster Geometry Under Drift and Corruption</a>
 			<span class="collaborators">
@@ -155,7 +154,7 @@
 			</span>
 				</li>
 
-		<li>	
+		<li>
 			<a href="https://arxiv.org/abs/2606.07954" class="publications" target="_blank">Minibatch Selection for Language Models via Partition Matroid Constrained Gradient Matching</a>
 			<span class="collaborators">
 				Prayas Agrawal*, <u>Prateek Chanda</u>*, Ishita Khatri, Ganesh Ramakrishnan, Bamdev Mishra, Pratik Jawanpuria
@@ -171,7 +170,7 @@
 			</span>
 		</li>
 
-		<li>	
+		<li>
 			<a href="#" class="publications" target="_blank">UniPROT: UNIform PRototype Selection via Partial Optimal Transport with Submodular Guarantees</a>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>*, Prayas Agrawal*, Karthik S. Gurumoorthy, Ganesh Ramakrishnan, Bamdev Mishra, Pratik Jawanpuria
@@ -186,7 +185,7 @@
 			</span>
 		</li>
 
-		<li>	
+		<li>
 			<a href="https://arxiv.org/abs/2504.07097" class="publications" target="_blank">Sculpting Subspaces: Constrained Full Fine-Tuning in LLMs for Continual Learning</a>
 			<span class="collaborators">
 				Nikhil Shivakumar Nayak, Krishnateja Killamsetty, Ligong Han, Abhishek Bhandwaldar, <u>Prateek Chanda</u>, Kai Xu, Hao Wang, Aldo Pareja, Oleg Silkin, Mustafa Eyceoz, Akash Srivastava
@@ -357,35 +356,50 @@
 
 	<br>
 	<div class="year">Trip Photos</div>
-	<p style="font-size:0.85em; margin-top:6px;">A few moments from recent trips. Select an album to browse its photos.</p>
+	<p style="font-size:0.85em; margin-top:6px;">A few scenic views and places from recent trips. Select an album to browse its photos.</p>
 	<div class="trip-albums">
 		<details class="trip-album">
 			<summary>
-				<img class="trip-album-cover" src="trip_photos/MA_01.jpg" alt="" loading="lazy">
-				<span class="trip-album-title">Massachusetts <span>15 photos</span></span>
+				<img class="trip-album-cover" src="trip_photos/Morocco_01.jpg" alt="" loading="lazy">
+				<span class="trip-album-title">Morocco <span>30 photos</span></span>
 			</summary>
 			<div class="trip-photo-grid">
-				<a href="trip_photos/MA_01.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_01.jpg" alt="Massachusetts trip photo 1" loading="lazy"></a>
-				<a href="trip_photos/MA_02.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_02.jpg" alt="Massachusetts trip photo 2" loading="lazy"></a>
-				<a href="trip_photos/MA_03.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_03.jpg" alt="Massachusetts trip photo 3" loading="lazy"></a>
-				<a href="trip_photos/MA_04.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_04.jpg" alt="Massachusetts trip photo 4" loading="lazy"></a>
-				<a href="trip_photos/MA_05.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_05.jpg" alt="Massachusetts trip photo 5" loading="lazy"></a>
-				<a href="trip_photos/MA_06.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_06.jpg" alt="Massachusetts trip photo 6" loading="lazy"></a>
-				<a href="trip_photos/MA_07.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_07.jpg" alt="Massachusetts trip photo 7" loading="lazy"></a>
-				<a href="trip_photos/MA_08.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_08.jpg" alt="Massachusetts trip photo 8" loading="lazy"></a>
-				<a href="trip_photos/MA_09.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_09.jpg" alt="Massachusetts trip photo 9" loading="lazy"></a>
-				<a href="trip_photos/MA_10.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_10.jpg" alt="Massachusetts trip photo 10" loading="lazy"></a>
-				<a href="trip_photos/MA_11.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_11.jpg" alt="Massachusetts trip photo 11" loading="lazy"></a>
-				<a href="trip_photos/MA_12.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_12.jpg" alt="Massachusetts trip photo 12" loading="lazy"></a>
-				<a href="trip_photos/MA_13.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_13.jpg" alt="Massachusetts trip photo 13" loading="lazy"></a>
-				<a href="trip_photos/MA_14.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_14.jpg" alt="Massachusetts trip photo 14" loading="lazy"></a>
-				<a href="trip_photos/MA_15.jpg" target="_blank" rel="noopener"><img src="trip_photos/MA_15.jpg" alt="Massachusetts trip photo 15" loading="lazy"></a>
+				<a href="trip_photos/Morocco_01.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_01.jpg" alt="Morocco trip photo 1" loading="lazy"></a>
+				<a href="trip_photos/Morocco_02.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_02.jpg" alt="Morocco trip photo 2" loading="lazy"></a>
+				<a href="trip_photos/Morocco_03.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_03.jpg" alt="Morocco trip photo 3" loading="lazy"></a>
+				<a href="trip_photos/Morocco_04.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_04.jpg" alt="Morocco trip photo 4" loading="lazy"></a>
+				<a href="trip_photos/Morocco_05.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_05.jpg" alt="Morocco trip photo 5" loading="lazy"></a>
+				<a href="trip_photos/Morocco_06.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_06.jpg" alt="Morocco trip photo 6" loading="lazy"></a>
+				<a href="trip_photos/Morocco_07.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_07.jpg" alt="Morocco trip photo 7" loading="lazy"></a>
+				<a href="trip_photos/Morocco_08.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_08.jpg" alt="Morocco trip photo 8" loading="lazy"></a>
+				<a href="trip_photos/Morocco_09.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_09.jpg" alt="Morocco trip photo 9" loading="lazy"></a>
+				<a href="trip_photos/Morocco_10.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_10.jpg" alt="Morocco trip photo 10" loading="lazy"></a>
+				<a href="trip_photos/Morocco_11.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_11.jpg" alt="Morocco trip photo 11" loading="lazy"></a>
+				<a href="trip_photos/Morocco_12.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_12.jpg" alt="Morocco trip photo 12" loading="lazy"></a>
+				<a href="trip_photos/Morocco_13.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_13.jpg" alt="Morocco trip photo 13" loading="lazy"></a>
+				<a href="trip_photos/Morocco_14.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_14.jpg" alt="Morocco trip photo 14" loading="lazy"></a>
+				<a href="trip_photos/Morocco_15.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_15.jpg" alt="Morocco trip photo 15" loading="lazy"></a>
+				<a href="trip_photos/Morocco_16.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_16.jpg" alt="Morocco trip photo 16" loading="lazy"></a>
+				<a href="trip_photos/Morocco_17.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_17.jpg" alt="Morocco trip photo 17" loading="lazy"></a>
+				<a href="trip_photos/Morocco_18.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_18.jpg" alt="Morocco trip photo 18" loading="lazy"></a>
+				<a href="trip_photos/Morocco_19.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_19.jpg" alt="Morocco trip photo 19" loading="lazy"></a>
+				<a href="trip_photos/Morocco_20.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_20.jpg" alt="Morocco trip photo 20" loading="lazy"></a>
+				<a href="trip_photos/Morocco_21.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_21.jpg" alt="Morocco trip photo 21" loading="lazy"></a>
+				<a href="trip_photos/Morocco_22.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_22.jpg" alt="Morocco trip photo 22" loading="lazy"></a>
+				<a href="trip_photos/Morocco_23.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_23.jpg" alt="Morocco trip photo 23" loading="lazy"></a>
+				<a href="trip_photos/Morocco_24.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_24.jpg" alt="Morocco trip photo 24" loading="lazy"></a>
+				<a href="trip_photos/Morocco_25.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_25.jpg" alt="Morocco trip photo 25" loading="lazy"></a>
+				<a href="trip_photos/Morocco_26.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_26.jpg" alt="Morocco trip photo 26" loading="lazy"></a>
+				<a href="trip_photos/Morocco_27.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_27.jpg" alt="Morocco trip photo 27" loading="lazy"></a>
+				<a href="trip_photos/Morocco_28.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_28.jpg" alt="Morocco trip photo 28" loading="lazy"></a>
+				<a href="trip_photos/Morocco_29.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_29.jpg" alt="Morocco trip photo 29" loading="lazy"></a>
+				<a href="trip_photos/Morocco_30.jpg" target="_blank" rel="noopener"><img src="trip_photos/Morocco_30.jpg" alt="Morocco trip photo 30" loading="lazy"></a>
 			</div>
 		</details>
 		<details class="trip-album">
 			<summary>
 				<img class="trip-album-cover" src="trip_photos/SD_01.jpg" alt="" loading="lazy">
-				<span class="trip-album-title">San Diego <span>20 photos</span></span>
+				<span class="trip-album-title">San Diego <span>30 photos</span></span>
 			</summary>
 			<div class="trip-photo-grid">
 				<a href="trip_photos/SD_01.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_01.jpg" alt="San Diego trip photo 1" loading="lazy"></a>
@@ -408,35 +422,105 @@
 				<a href="trip_photos/SD_18.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_18.jpg" alt="San Diego trip photo 18" loading="lazy"></a>
 				<a href="trip_photos/SD_19.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_19.jpg" alt="San Diego trip photo 19" loading="lazy"></a>
 				<a href="trip_photos/SD_20.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_20.jpg" alt="San Diego trip photo 20" loading="lazy"></a>
+				<a href="trip_photos/SD_21.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_21.jpg" alt="San Diego trip photo 21" loading="lazy"></a>
+				<a href="trip_photos/SD_22.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_22.jpg" alt="San Diego trip photo 22" loading="lazy"></a>
+				<a href="trip_photos/SD_23.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_23.jpg" alt="San Diego trip photo 23" loading="lazy"></a>
+				<a href="trip_photos/SD_24.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_24.jpg" alt="San Diego trip photo 24" loading="lazy"></a>
+				<a href="trip_photos/SD_25.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_25.jpg" alt="San Diego trip photo 25" loading="lazy"></a>
+				<a href="trip_photos/SD_26.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_26.jpg" alt="San Diego trip photo 26" loading="lazy"></a>
+				<a href="trip_photos/SD_27.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_27.jpg" alt="San Diego trip photo 27" loading="lazy"></a>
+				<a href="trip_photos/SD_28.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_28.jpg" alt="San Diego trip photo 28" loading="lazy"></a>
+				<a href="trip_photos/SD_29.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_29.jpg" alt="San Diego trip photo 29" loading="lazy"></a>
+				<a href="trip_photos/SD_30.jpg" target="_blank" rel="noopener"><img src="trip_photos/SD_30.jpg" alt="San Diego trip photo 30" loading="lazy"></a>
 			</div>
 		</details>
 		<details class="trip-album">
 			<summary>
-				<img class="trip-album-cover" src="trip_photos/VN_01.jpg" alt="" loading="lazy">
-				<span class="trip-album-title">Vietnam <span>18 photos</span></span>
+				<img class="trip-album-cover" src="trip_photos/Vienna_03.jpg" alt="" loading="lazy">
+				<span class="trip-album-title">Vienna <span>30 photos</span></span>
 			</summary>
 			<div class="trip-photo-grid">
-				<a href="trip_photos/VN_01.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_01.jpg" alt="Vietnam trip photo 1" loading="lazy"></a>
-				<a href="trip_photos/VN_02.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_02.jpg" alt="Vietnam trip photo 2" loading="lazy"></a>
-				<a href="trip_photos/VN_03.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_03.jpg" alt="Vietnam trip photo 3" loading="lazy"></a>
-				<a href="trip_photos/VN_04.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_04.jpg" alt="Vietnam trip photo 4" loading="lazy"></a>
-				<a href="trip_photos/VN_05.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_05.jpg" alt="Vietnam trip photo 5" loading="lazy"></a>
-				<a href="trip_photos/VN_06.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_06.jpg" alt="Vietnam trip photo 6" loading="lazy"></a>
-				<a href="trip_photos/VN_07.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_07.jpg" alt="Vietnam trip photo 7" loading="lazy"></a>
-				<a href="trip_photos/VN_08.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_08.jpg" alt="Vietnam trip photo 8" loading="lazy"></a>
-				<a href="trip_photos/VN_09.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_09.jpg" alt="Vietnam trip photo 9" loading="lazy"></a>
-				<a href="trip_photos/VN_10.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_10.jpg" alt="Vietnam trip photo 10" loading="lazy"></a>
-				<a href="trip_photos/VN_11.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_11.jpg" alt="Vietnam trip photo 11" loading="lazy"></a>
-				<a href="trip_photos/VN_12.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_12.jpg" alt="Vietnam trip photo 12" loading="lazy"></a>
-				<a href="trip_photos/VN_13.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_13.jpg" alt="Vietnam trip photo 13" loading="lazy"></a>
-				<a href="trip_photos/VN_14.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_14.jpg" alt="Vietnam trip photo 14" loading="lazy"></a>
-				<a href="trip_photos/VN_15.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_15.jpg" alt="Vietnam trip photo 15" loading="lazy"></a>
-				<a href="trip_photos/VN_16.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_16.jpg" alt="Vietnam trip photo 16" loading="lazy"></a>
-				<a href="trip_photos/VN_17.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_17.jpg" alt="Vietnam trip photo 17" loading="lazy"></a>
-				<a href="trip_photos/VN_18.jpg" target="_blank" rel="noopener"><img src="trip_photos/VN_18.jpg" alt="Vietnam trip photo 18" loading="lazy"></a>
+				<a href="trip_photos/Vienna_01.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_01.jpg" alt="Vienna trip photo 1" loading="lazy"></a>
+				<a href="trip_photos/Vienna_02.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_02.jpg" alt="Vienna trip photo 2" loading="lazy"></a>
+				<a href="trip_photos/Vienna_03.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_03.jpg" alt="Vienna trip photo 3" loading="lazy"></a>
+				<a href="trip_photos/Vienna_05.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_05.jpg" alt="Vienna trip photo 4" loading="lazy"></a>
+				<a href="trip_photos/Vienna_06.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_06.jpg" alt="Vienna trip photo 5" loading="lazy"></a>
+				<a href="trip_photos/Vienna_07.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_07.jpg" alt="Vienna trip photo 6" loading="lazy"></a>
+				<a href="trip_photos/Vienna_08.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_08.jpg" alt="Vienna trip photo 7" loading="lazy"></a>
+				<a href="trip_photos/Vienna_09.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_09.jpg" alt="Vienna trip photo 8" loading="lazy"></a>
+				<a href="trip_photos/Vienna_10.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_10.jpg" alt="Vienna trip photo 9" loading="lazy"></a>
+				<a href="trip_photos/Vienna_11.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_11.jpg" alt="Vienna trip photo 10" loading="lazy"></a>
+				<a href="trip_photos/Vienna_12.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_12.jpg" alt="Schönbrunn Palace and gardens in Vienna" loading="lazy"></a>
+				<a href="trip_photos/Vienna_13.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_13.jpg" alt="Fountain at Schönbrunn Palace in Vienna" loading="lazy"></a>
+				<a href="trip_photos/Vienna_14.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_14.jpg" alt="Broad garden approach lined with trees" loading="lazy"></a>
+				<a href="trip_photos/Vienna_15.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_15.jpg" alt="Shaded path through the palace gardens" loading="lazy"></a>
+				<a href="trip_photos/Vienna_16.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_16.jpg" alt="Tree-lined garden avenue" loading="lazy"></a>
+				<a href="trip_photos/Vienna_17.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_17.jpg" alt="Garden path beneath leafy trees" loading="lazy"></a>
+				<a href="trip_photos/Vienna_18.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_18.jpg" alt="Formal tree-lined promenade" loading="lazy"></a>
+				<a href="trip_photos/Vienna_19.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_19.jpg" alt="Sunlit path through the gardens" loading="lazy"></a>
+				<a href="trip_photos/Vienna_20.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_20.jpg" alt="Garden avenue leading toward a fountain" loading="lazy"></a>
+				<a href="trip_photos/Vienna_21.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_21.jpg" alt="Historic Vienna buildings at a city intersection" loading="lazy"></a>
+				<a href="trip_photos/Vienna_22.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_22.jpg" alt="Vienna streetscape with classic facades" loading="lazy"></a>
+				<a href="trip_photos/Vienna_23.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_23.jpg" alt="Quiet side street lined with historic buildings" loading="lazy"></a>
+				<a href="trip_photos/Vienna_24.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_24.jpg" alt="Vienna street scene beneath leafy trees" loading="lazy"></a>
+				<a href="trip_photos/Vienna_25.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_25.jpg" alt="Wide intersection and historic architecture" loading="lazy"></a>
+				<a href="trip_photos/Vienna_26.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_26.jpg" alt="City street with traditional Vienna facades" loading="lazy"></a>
+				<a href="trip_photos/Vienna_27.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_27.jpg" alt="Alpine lake and village beneath the mountains" loading="lazy"></a>
+				<a href="trip_photos/Vienna_28.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_28.jpg" alt="Mountain panorama across an Austrian lake" loading="lazy"></a>
+				<a href="trip_photos/Vienna_29.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_29.jpg" alt="Green hills and lakeside village in Austria" loading="lazy"></a>
+				<a href="trip_photos/Vienna_30.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_30.jpg" alt="Historic fountain in a wooded garden" loading="lazy"></a>
+				<a href="trip_photos/Vienna_31.jpg" target="_blank" rel="noopener"><img src="trip_photos/Vienna_31.jpg" alt="Garden fountain pool and stone sculpture" loading="lazy"></a>
+			</div>
+		</details>
+		<details class="trip-album">
+			<summary>
+				<img class="trip-album-cover" src="trip_photos/Korea_01.jpg" alt="" loading="lazy">
+				<span class="trip-album-title">Korea <span>30 photos</span></span>
+			</summary>
+			<div class="trip-photo-grid">
+				<a href="trip_photos/Korea_01.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_01.jpg" alt="Korea trip photo 1" loading="lazy"></a>
+				<a href="trip_photos/Korea_02.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_02.jpg" alt="Korea trip photo 2" loading="lazy"></a>
+				<a href="trip_photos/Korea_03.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_03.jpg" alt="Korea trip photo 3" loading="lazy"></a>
+				<a href="trip_photos/Korea_04.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_04.jpg" alt="Korea trip photo 4" loading="lazy"></a>
+				<a href="trip_photos/Korea_05.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_05.jpg" alt="Korea trip photo 5" loading="lazy"></a>
+				<a href="trip_photos/Korea_06.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_06.jpg" alt="Korea trip photo 6" loading="lazy"></a>
+				<a href="trip_photos/Korea_07.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_07.jpg" alt="Korea trip photo 7" loading="lazy"></a>
+				<a href="trip_photos/Korea_08.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_08.jpg" alt="Korea trip photo 8" loading="lazy"></a>
+				<a href="trip_photos/Korea_09.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_09.jpg" alt="Korea trip photo 9" loading="lazy"></a>
+				<a href="trip_photos/Korea_10.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_10.jpg" alt="Korea trip photo 10" loading="lazy"></a>
+				<a href="trip_photos/Korea_11.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_11.jpg" alt="Indoor atrium in Seoul" loading="lazy"></a>
+				<a href="trip_photos/Korea_12.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_12.jpg" alt="Traditional Korean temple beneath a cloudy sky" loading="lazy"></a>
+				<a href="trip_photos/Korea_13.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_13.jpg" alt="Temple grounds and landscaped courtyard" loading="lazy"></a>
+				<a href="trip_photos/Korea_14.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_14.jpg" alt="Seoul city plaza and surrounding towers" loading="lazy"></a>
+				<a href="trip_photos/Korea_15.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_15.jpg" alt="Colorful interior of a Korean temple" loading="lazy"></a>
+				<a href="trip_photos/Korea_16.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_16.jpg" alt="Traditional courtyard shaded by trees" loading="lazy"></a>
+				<a href="trip_photos/Korea_17.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_17.jpg" alt="Seoul skyline viewed from a hillside" loading="lazy"></a>
+				<a href="trip_photos/Korea_18.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_18.jpg" alt="Wooded walking path in Seoul" loading="lazy"></a>
+				<a href="trip_photos/Korea_19.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_19.jpg" alt="Traditional Korean courtyard with pottery jars" loading="lazy"></a>
+				<a href="trip_photos/Korea_20.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_20.jpg" alt="Path beside a traditional palace wall" loading="lazy"></a>
+				<a href="trip_photos/Korea_21.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_21.jpg" alt="Stream and thatched pavilion in a traditional village" loading="lazy"></a>
+				<a href="trip_photos/Korea_22.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_22.jpg" alt="Han River and Seoul skyline by day" loading="lazy"></a>
+				<a href="trip_photos/Korea_23.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_23.jpg" alt="Seoul skyline reflected on the river at night" loading="lazy"></a>
+				<a href="trip_photos/Korea_24.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_24.jpg" alt="Boat on the Han River at night" loading="lazy"></a>
+				<a href="trip_photos/Korea_25.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_25.jpg" alt="Riverside walkway illuminated at night" loading="lazy"></a>
+				<a href="trip_photos/Korea_26.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_26.jpg" alt="Night market street in Seoul" loading="lazy"></a>
+				<a href="trip_photos/Korea_27.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_27.jpg" alt="Sunset over Seoul and the Han River" loading="lazy"></a>
+				<a href="trip_photos/Korea_28.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_28.jpg" alt="Traditional gate beside a modern Seoul street" loading="lazy"></a>
+				<a href="trip_photos/Korea_29.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_29.jpg" alt="Modern architectural entrance in Seoul" loading="lazy"></a>
+				<a href="trip_photos/Korea_30.jpg" target="_blank" rel="noopener"><img src="trip_photos/Korea_30.jpg" alt="Modern building atrium and ceiling" loading="lazy"></a>
 			</div>
 		</details>
 	</div>
+
+	<dialog class="trip-photo-viewer" id="trip-photo-viewer" aria-label="Trip photo viewer">
+		<button class="trip-viewer-close" type="button" aria-label="Close photo viewer">&times;</button>
+		<img class="trip-viewer-image" src="" alt="">
+		<div class="trip-viewer-footer">
+			<button class="trip-viewer-previous" type="button" aria-label="Previous photo">&larr;</button>
+			<p class="trip-viewer-caption" aria-live="polite"></p>
+			<button class="trip-viewer-next" type="button" aria-label="Next photo">&rarr;</button>
+		</div>
+	</dialog>
 
 		
 	</div>
@@ -449,7 +533,6 @@
 		<div class="footer wrapper">
 	<nav class="nav">
 		<div><a href="https://github.com/hadisinaee/avicenna">Avicenna Theme</a> | Built with <a href="https://gohugo.io">Hugo</a></div>
-		<div>Profile illustration by <a href="https://www.behance.net/gallery/80437265/Jamini-Roy-Style-Satyajit-Ray-Painting" target="_blank">Saikat Sarkar</a></div>
 	</nav>
 </div>
 

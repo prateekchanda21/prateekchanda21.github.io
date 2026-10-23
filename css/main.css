@@ -202,7 +202,10 @@ ul {
   margin-left: auto;
   margin-right: auto;
   max-width: 30%;
+  aspect-ratio: 1;
   height: auto;
+  object-fit: cover;
+  object-position: 40% center;
   border-radius: 50%;
   /* float: left; */
 }
@@ -478,10 +481,16 @@ ul {
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
   padding: 0 10px 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #aaa #f3f3f3;
+  scrollbar-width: thin;
 }
 
 .trip-photo-grid a {
   border: 0;
+  cursor: zoom-in;
 }
 
 .trip-photo-grid img {
@@ -490,6 +499,75 @@ ul {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: 4px;
+}
+
+.trip-photo-viewer {
+  position: relative;
+  width: min(92vw, 1000px);
+  max-width: none;
+  max-height: 92vh;
+  padding: 36px 16px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #171717;
+  color: #fff;
+}
+
+.trip-photo-viewer::backdrop {
+  background: rgb(0 0 0 / 85%);
+}
+
+.trip-viewer-image {
+  display: block;
+  width: 100%;
+  height: min(72vh, 760px);
+  object-fit: contain;
+}
+
+.trip-viewer-close,
+.trip-viewer-previous,
+.trip-viewer-next {
+  border: 0;
+  border-radius: 4px;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.trip-viewer-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.trip-viewer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.trip-viewer-previous,
+.trip-viewer-next {
+  flex: 0 0 44px;
+  height: 40px;
+  font-size: 24px;
+}
+
+.trip-viewer-caption {
+  margin: 0;
+  color: #fff;
+  text-align: center;
+}
+
+.trip-photo-viewer button:hover {
+  background: #555;
 }
 
 
