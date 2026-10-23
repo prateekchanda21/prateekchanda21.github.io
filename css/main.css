@@ -429,6 +429,69 @@ ul {
   margin-right: 15px;
 }
 
+.trip-albums {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.trip-album {
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.trip-album summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.trip-album summary::-webkit-details-marker {
+  display: none;
+}
+
+.trip-album-cover {
+  display: block;
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.trip-album-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  font-weight: 400;
+}
+
+.trip-album-title span {
+  color: #777;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+.trip-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+
+.trip-photo-grid a {
+  border: 0;
+}
+
+.trip-photo-grid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
 
 
 @media (max-width: 767px) {
