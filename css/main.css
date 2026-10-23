@@ -172,6 +172,13 @@ ul {
   display: inline;
 }
 
+.introduction .intro-divider {
+  display: block;
+  height: 0;
+  border-top: 1px solid #eee;
+  margin: 18px 0;
+}
+
 .highlight pre {
   margin-bottom: 0;
   margin-top: 0;
@@ -184,7 +191,7 @@ ul {
 }
 
 .wrapper {
-  max-width: 760px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
