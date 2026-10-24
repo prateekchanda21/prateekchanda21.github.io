@@ -35,6 +35,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll("a.image-preview").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      opener = link;
+      viewer.classList.add("single-image");
+      viewerImage.src = link.href;
+      viewerImage.alt = link.textContent.trim();
+      caption.textContent = link.textContent.trim();
+      viewer.showModal();
+    });
+  });
+
   previousButton.addEventListener("click", () => showPhoto(currentIndex - 1));
   nextButton.addEventListener("click", () => showPhoto(currentIndex + 1));
   closeButton.addEventListener("click", () => viewer.close());
@@ -57,4 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   viewer.addEventListener("close", () => opener?.focus());
+
+  viewer.addEventListener("close", () => viewer.classList.remove("single-image"));
 });

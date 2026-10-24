@@ -179,6 +179,13 @@ ul {
   margin: 18px 0;
 }
 
+.introduction .intro-section-title {
+  color: #777;
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
 .highlight pre {
   margin-bottom: 0;
   margin-top: 0;
@@ -565,6 +572,11 @@ ul {
   flex: 0 0 44px;
   height: 40px;
   font-size: 24px;
+}
+
+.trip-photo-viewer.single-image .trip-viewer-previous,
+.trip-photo-viewer.single-image .trip-viewer-next {
+  visibility: hidden;
 }
 
 .trip-viewer-caption {
