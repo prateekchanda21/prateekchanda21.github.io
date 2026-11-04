@@ -361,3 +361,35 @@ span:has(> .katex):not(.katex-display) { display: inline; }
 .blog-figure figcaption strong { color: #444; font-weight: 500; }
 
 .blog-steps { margin: 1rem 0 .5rem; }
+
+/* ---------- Paper-style post layout ---------- */
+.blog-authors {
+  color: #555;
+  font-size: .95rem;
+  line-height: 1.55;
+  margin-bottom: .4rem;
+}
+
+.blog-authors u { text-decoration-color: #a00; }
+
+.blog-page article > h2 {
+  border-bottom: 1px solid #e6e6e6;
+  padding-bottom: .35rem;
+}
+
+.blog-page .katex-display {
+  margin: 1.1rem 0 1.2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: .2rem 0;
+}
+
+.blog-bibtex {
+  background: #f7f8fa;
+  border: 1px solid #e6e8eb;
+  border-radius: 6px;
+  font-size: .82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  padding: .9rem 1rem;
+}

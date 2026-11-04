@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="A research overview of UniPROT, uniform prototype selection via partial optimal transport with submodular guarantees.">
-	<title>UniPROT: Uniform Prototype Selection | Prateek Chanda</title>
+	<meta name="description" content="Selecting equally weighted prototypes with optimal transport, made tractable by a partial-transport submodular reformulation.">
+	<title>UniPROT: Uniform Prototype Selection via Partial Optimal Transport with Submodular Guarantees | Prateek Chanda</title>
 	<link rel="canonical" href="https://prateekchanda21.github.io/blog/uniprot/">
 	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
 	<link rel="stylesheet" href="../../css/normalize.css">
@@ -13,7 +13,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
-		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+		onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
 </head>
 <body>
 	<main class="blog-page">
@@ -21,7 +21,8 @@
 
 		<article>
 			<header>
-				<h1 class="blog-title">Why Should Every Selected Example Count Equally?</h1>
+				<h1 class="blog-title">UniPROT: Uniform Prototype Selection via Partial Optimal Transport with Submodular Guarantees</h1>
+				<div class="blog-authors"><u>Prateek Chanda</u>*, Prayas Agrawal*, Karthik S. Gurumoorthy, Ganesh Ramakrishnan, Bamdev Mishra, Pratik Jawanpuria</div>
 				<div class="blog-meta"><strong>AISTATS 2026</strong> &middot; November 3, 2026</div>
 				<nav class="blog-resources" aria-label="Paper resources">
 					<a href="https://arxiv.org/abs/2604.10952" target="_blank" rel="noopener noreferrer">Paper</a>
@@ -30,140 +31,105 @@
 				</nav>
 			</header>
 
-			<div class="blog-tldr">
-				<strong>The short version</strong>
-				<ul>
-					<li>Prototype or subset selection usually <em>learns a weight</em> for each chosen example. On imbalanced data the minority prototypes get tiny weights and barely count.</li>
-					<li>UniPROT forces every selected prototype to carry exactly <strong>1/k</strong> of the mass, and picks the set whose uniform distribution is closest to the data in optimal-transport terms.</li>
-					<li>That objective is super-additive, so greedy has no guarantee. A partial-transport reformulation makes it submodular with a (1 &minus; 1/e) guarantee, and the marginal gain has an O(n log n) closed form.</li>
-				</ul>
-			</div>
+			<p>A small set of representative examples, or prototypes, is useful for summarising a dataset, for interpretable nearest-prototype classifiers, and for choosing training batches. Popular methods such as k-medoids and facility location also learn a weight for each prototype. On imbalanced data those weights are skewed: a few prototypes from the large classes carry most of the mass, and the ones for minority classes barely count. We show how to select prototypes that all carry the same weight, with the same greedy guarantee these methods enjoy.</p>
 
-			<p class="blog-lede">A small representative set is only useful if it represents the parts of the data we care about. Many subset-selection methods quietly assign weights to their selected examples. When the data is imbalanced, those weights let common classes or large sources dominate.</p>
+			<p>UniPROT asks for the set whose uniform distribution is closest, in optimal transport, to the data. That objective turns out to be super-additive, which rules out the usual greedy argument. A partial-transport reformulation makes it submodular again, giving a \((1 - 1/e)\) guarantee for the original problem and a marginal gain that costs one sort. Uniform prototypes improve minority-class accuracy on long-tailed image benchmarks, and, used to pick minibatches, they improve LLM fine-tuning and pretraining.</p>
+
+			<figure class="blog-figure">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Prototype weights learned by k-medoids on CIFAR-10, ranked and averaged over 5 runs" loading="lazy"></a>
+				<figcaption>Prototype weights learned by k-medoids on CIFAR-10, ranked and averaged over 5 runs. The largest weight is 6.5 times the smallest.</figcaption>
+			</figure>
 
 			<h2>Selection as moving mass</h2>
-			<p>Optimal transport (OT) asks for the cheapest way to move mass from one distribution to another. We use its similarity form: with \(S_{ij} = \beta - C_{ij}\), maximising similarity is the same as minimising cost.</p>
+			<p>Optimal transport (OT) finds the cheapest way to move mass from a source distribution \(\mu\) to a target \(\nu\). With a similarity matrix \(S_{ij} = \beta - C_{ij}\), where \(C\) holds the costs, it can be written as a maximisation:</p>
+			\[ \mathrm{OT}(\mu, \nu) = \max_{\gamma \in \Gamma(\mu,\nu)} \langle S, \gamma \rangle, \qquad \Gamma(\mu,\nu) = \{\gamma \ge 0 : \gamma\mathbf{1} = \mu,\; \gamma^{\top}\mathbf{1} = \nu\}. \]
+			<p>Here \(\gamma_{ij}\) is how much mass candidate \(x_i\) sends to data point \(y_j\). Facility location and k-medoids can be read as OT problems too. They choose a set \(P\) and, at the same time, the weights \(\mu\) on it:</p>
+			\[ l(P) = \max_{\mu \in \Delta,\; \mathrm{supp}(\mu) \subseteq P} \mathrm{OT}(\mu, \nu). \]
+			<p>The learned weights are where imbalance creeps in. Large classes attract mass, and a prototype that sits in a small class ends up with a small weight.</p>
 
-			<div class="blog-math">
-				<span class="blog-math-label">Optimal transport, similarity form (Eqs. 1–2)</span>
-				$$\mathrm{OT}(\mu, \nu) = \max_{\gamma \in \Gamma(\mu,\nu)} \langle S, \gamma \rangle, \qquad \Gamma(\mu,\nu) = \{\gamma \ge 0 : \gamma\mathbf{1} = \mu,\; \gamma^{\top}\mathbf{1} = \nu\}$$
-				<p class="in-words"><strong>In words:</strong> \(\gamma_{ij}\) is how much mass candidate \(x_i\) sends to data point \(y_j\). Rows must sum to the source masses and columns to the target masses. A good plan sends mass between similar points.</p>
-			</div>
+			<h2>Ingredient 1: make the weights uniform</h2>
+			<p>UniPROT removes that freedom. Every selected prototype ships exactly \(1/|P|\) of the mass:</p>
+			\[ \max_{|P| \le k}\; g(P), \qquad g(P) = \max_{\gamma \in \Gamma\left(\mathbf{1}_P/|P|,\; \mathbf{1}/n\right)} \langle S, \gamma \rangle. \]
+			<p>The only freedom left is which prototypes to pick. The catch is the optimisation. The rescaled objective \(h(P) = |P|\,g(P)\) is monotone but super-additive, \(h(P_1 \cup P_2) \ge h(P_1) + h(P_2)\). It has increasing rather than diminishing returns, and greedy algorithms come with no guarantee for such functions.</p>
 
-			<div class="blog-math">
-				<span class="blog-math-label">What facility location / k-medoids is secretly doing (Eq. 4)</span>
-				$$l(P) = \max_{\substack{\mu \in \Delta_m\\ \mathrm{supp}(\mu) \subseteq P}} \mathrm{OT}(\mu, \nu)$$
-				<p class="in-words"><strong>In words:</strong> popular selection objectives also <em>choose the weights</em> \(\mu\) on the selected set. In practice those weights come out highly skewed (Figure 1 of the paper, CIFAR-10), and minority-class prototypes end up with very little say.</p>
-			</div>
-
-			<figure class="blog-figure">
-				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Ranked prototype weights learned by k-medoids" loading="lazy"></a>
-				<figcaption><strong>Figure 1 from the paper.</strong> k-medoids learns skewed weights. The 50 selected prototypes on CIFAR-10, ranked by learned weight and averaged over 5 runs; the largest weight is 6.5&times; the smallest.</figcaption>
-			</figure>
-
-			<div class="blog-math">
-				<span class="blog-math-label">UniPROT's objective: uniform weights (Eq. 5)</span>
-				$$\max_{P \subseteq \mathcal{S},\, |P| \le k} \; g(P), \qquad g(P) = \max_{\gamma \in \Gamma\left(\frac{\mathbf{1}_P}{|P|},\, \frac{\mathbf{1}}{n}\right)} \langle S, \gamma \rangle$$
-				<p class="in-words"><strong>In words:</strong> the selected set must send exactly the same amount of mass from every prototype. The only freedom left is <em>which</em> prototypes to pick.</p>
-			</div>
-
-			<h2>From an intractable objective to a greedy one</h2>
-			<p>Rescale to \(h(P) = |P|\,g(P) = \mathrm{OT}(\mathbf{1}_P,\, |P|\mathbf{1}/n)\). This is monotone but <strong>super-additive</strong>: \(h(P_1 \cup P_2) \ge h(P_1) + h(P_2)\), which means increasing rather than diminishing returns. Greedy algorithms have no general guarantee there. The fix is to relax the target-side constraint into an inequality:</p>
-
-			<div class="blog-math">
-				<span class="blog-math-label">Partial-transport reformulation (Eq. 7)</span>
-				$$f(P) = \max_{\gamma \in \Gamma_{\le}\left(\mathbf{1}_P,\; \frac{k}{n}\mathbf{1}\right)} \langle S, \gamma \rangle, \qquad \Gamma_{\le}(\mu,\nu) = \{\gamma \ge 0 : \gamma\mathbf{1} = \mu,\; \gamma^{\top}\mathbf{1} \le \nu\}$$
-				<p class="in-words"><strong>In words:</strong> every prototype still ships exactly one unit. Each data point can <em>receive at most</em> its share \(k/n\), and the full budget is reached only once all \(k\) prototypes are chosen.</p>
-			</div>
-
-			<div class="blog-math">
-				<span class="blog-math-label">Why this works (Lemmas 2–4)</span>
-				$$f \text{ is monotone submodular}, \qquad f(P) = h(P) \text{ when } |P| = k, \qquad h(\hat P) \ge \Big(1 - \tfrac{1}{e}\Big)\,\mathrm{OPT}$$
-				<p class="in-words"><strong>In words:</strong> the relaxed objective has diminishing returns, so plain greedy is near-optimal on it. At the final size \(k\), the relaxed and original objectives coincide and share optimal sets. The greedy answer is therefore within \(1 - 1/e \approx 63\%\) of the best uniform-weight prototype set.</p>
-			</div>
-
-			<h2>A cheap marginal gain</h2>
-			<p>Exact greedy would solve one partial-OT problem per candidate per step. Instead we freeze the current plan \(\gamma_P\) and ask how well a new candidate \(x_j\) could use the capacity that is left:</p>
-
-			<div class="blog-math">
-				<span class="blog-math-label">Approximate marginal gain (Eq. 8)</span>
-				$$\hat f(x_j \mid P) = \max_{\substack{v \ge 0,\; \mathbf{1}^{\top} v = 1\\ v \,\le\, \frac{k}{n}\mathbf{1} - \gamma_P^{\top}\mathbf{1}}} \big\langle S_{(j,:)},\, v \big\rangle$$
-				<p class="in-words"><strong>In words:</strong> pour the candidate's one unit of mass into the data points it is most similar to, but only into capacity that the current prototypes haven't already used. This is solved exactly by sorting a row of \(S\), in \(O(n \log n)\) time.</p>
-			</div>
+			<h2>Ingredient 2: relax the target into partial transport</h2>
+			<p>The fix is to let each data point receive <em>at most</em> its share, rather than exactly its share:</p>
+			\[ f(P) = \max_{\gamma \in \Gamma_{\le}\left(\mathbf{1}_P,\; \frac{k}{n}\mathbf{1}\right)} \langle S, \gamma \rangle, \qquad \Gamma_{\le}(\mu,\nu) = \{\gamma \ge 0 : \gamma\mathbf{1} = \mu,\; \gamma^{\top}\mathbf{1} \le \nu\}. \]
+			<p>Every prototype still ships one unit; the data points just do not have to be filled until all \(k\) prototypes are in. This partial-OT objective is monotone and submodular. At size \(k\) it coincides with the original problem and has the same optimal sets. So the classical greedy algorithm run on \(f\) gives \(h(\hat P) \ge (1 - 1/e)\,\mathrm{OPT}\) for the uniform-weight problem.</p>
+			<p><strong>A cheap marginal gain.</strong> Exact greedy would solve one partial-OT problem per candidate per step. Instead we keep the current plan \(\gamma_P\) fixed and ask how well a new candidate \(x_j\) could use the capacity that is left:</p>
+			\[ \hat f(x_j \mid P) = \max_{\substack{v \ge 0,\; \mathbf{1}^{\top} v = 1\\ v \,\le\, \frac{k}{n}\mathbf{1} - \gamma_P^{\top}\mathbf{1}}} \big\langle S_{(j,:)},\, v \big\rangle. \]
+			<p>The candidate pours its unit of mass into the data points it is most similar to, but only into capacity the current prototypes have not used. This is solved exactly by sorting one row of \(S\). Greedy with this estimate still has a \((1 - e^{-\alpha})\) guarantee, where \(\alpha\) depends on the spread of similarities, and in practice the estimated and exact gains are nearly identical.</p>
 
 			<figure class="blog-figure">
-				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Exact versus approximate marginal gain" loading="lazy"></a>
-				<figcaption><strong>Figure 2 from the paper.</strong> On MNIST: the objective value with exact versus approximate (Eq. 8) marginal gains (left), and the ratio of approximate to exact gain across greedy iterations (right), which stays close to 1.</figcaption>
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="On MNIST: the objective value under exact and approximate marginal gains (left), and their ratio across greedy iteration" loading="lazy"></a>
+				<figcaption>On MNIST: the objective value under exact and approximate marginal gains (left), and their ratio across greedy iterations (right).</figcaption>
 			</figure>
 
-			<p>With this estimator, greedy still has a guarantee of \(f(\hat P) \ge (1 - e^{-\alpha})\,\mathrm{OPT}\) (Lemma 5), where \(\alpha\) compares the smallest and largest similarity mass a candidate could place. In practice the approximate and exact gains are nearly identical across greedy iterations. Each step solves one small entropic partial-OT problem by Bregman/Sinkhorn iterations, so selecting \(k\) prototypes costs \(O(kmn\log n)\), close to classical greedy facility location.</p>
+			<p>Each step solves one small entropy-regularised partial-OT problem with Sinkhorn-style iterations, so selecting \(k\) prototypes costs \(O(kmn\log n)\), close to the cost of classical greedy facility location.</p>
 
-			<ol class="blog-steps">
-				<li><strong>Similarity matrix.</strong> Compute S between candidates and target data.</li>
-				<li><strong>Solve current plan.</strong> Entropic partial OT for the prototypes picked so far.</li>
-				<li><strong>Score candidates.</strong> Eq. 8 by sorting: fill leftover target capacity.</li>
-				<li><strong>Add the best.</strong> Repeat until k prototypes, each with mass 1/k.</li>
-			</ol>
-			<p class="blog-caveat">UniPROT in four steps. For very large candidate pools, a stochastic-greedy variant scores a random subset of candidates each round.</p>
-
-			<h2>Does uniformity actually help?</h2>
-			<h3>Minority classes</h3>
-			<p>The first test is the one that motivated the method. Prototypes are selected without labels from a long-tailed target set, then used as a 1-nearest-neighbour classifier. If the prototypes represent the data well, minority classes should be classified correctly too.</p>
+			<h2>Results</h2>
+			<p><strong>Minority classes.</strong> Prototypes are selected without labels from a long-tailed target set and then used as a 1-nearest-neighbour classifier. On CIFAR10-LT and on synthetic long-tailed MNIST, UniPROT generally improves minority-class accuracy over weighted k-medoids, often most clearly when only a few prototypes are allowed, without hurting the majority classes.</p>
 
 			<figure class="blog-figure">
-				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Figure 3 from the paper" loading="lazy"></a>
-				<figcaption><strong>Figure 3 from the paper.</strong> Minority-class accuracy as the number of prototypes grows, on CIFAR10-LT and synthetic long-tailed MNIST. The bar charts show how skewed each target set is. UniPROT generally sits above weighted k-medoids, and the gap is often largest when only a few prototypes are allowed.</figcaption>
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Minority-class accuracy against the number of prototypes on (a) CIFAR10-LT and (b) synthetic long-tailed MNIST" loading="lazy"></a>
+				<figcaption>Minority-class accuracy against the number of prototypes on (a) CIFAR10-LT and (b) synthetic long-tailed MNIST. The bar charts show each target set's class distribution.</figcaption>
 			</figure>
 
-
-			<h3>Fine-tuning LLMs on imbalanced data</h3>
-			<p>MathInstruct combines many sources of very different sizes. At each step we select half of a 128-example batch, either per source or over the whole batch, and fine-tune Phi-3.</p>
+			<p><strong>Fine-tuning on imbalanced data.</strong> LLM training data mixes sources of very different sizes, and weighted selection tends to pick strong prototypes for big sources and weak ones for small sources. On MathInstruct we select half of each 128-example batch, either per source or over the whole batch, and fine-tune Phi-3. UniPROT has the best in-domain, out-of-domain and overall averages, ahead even of training on the full batch. Its validation perplexity is also the lowest on Phi-3, Zephyr-3B and Phi-2.</p>
 
 			<figure class="blog-figure">
-				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 1 from the paper.</strong> Phi-3 on MathInstruct (source-wise / batch-wise). UniPROT has the best in-domain, out-of-domain and overall averages, and is even ahead of fine-tuning on the full batch (FT).</figcaption>
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Phi-3 on MathInstruct, with source-wise / batch-wise selection" loading="lazy"></a>
+				<figcaption>Phi-3 on MathInstruct, with source-wise / batch-wise selection.</figcaption>
 			</figure>
-
 
 			<figure class="blog-figure">
-				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Figure 4 from the paper" loading="lazy"></a>
-				<figcaption><strong>Figure 4 from the paper.</strong> Validation perplexity during training for Phi-3, Zephyr-3B and Phi-2. UniPROT reaches lower perplexity than GREATS and CoLM on all three models.</figcaption>
+				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Validation perplexity on MathInstruct for Phi-3, Zephyr-3B and Phi-2" loading="lazy"></a>
+				<figcaption>Validation perplexity on MathInstruct for Phi-3, Zephyr-3B and Phi-2.</figcaption>
 			</figure>
 
-
-			<h3>When sources are unknown</h3>
-			<p>Often the data has no source labels at all. In that case we select over the whole batch:</p>
+			<p><strong>Without source labels.</strong> Many fine-tuning sets come without source tags. Selecting over whole batches of SuperGLUE with Phi-3 at 25%, UniPROT has the best average, 92.41, against 92.12 for GREATS and 90.89 for full fine-tuning.</p>
 
 			<figure class="blog-figure">
-				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 3 from the paper.</strong> Phi-3 on SuperGLUE with batch-wise selection at 25%. UniPROT has the best average (92.41), above full fine-tuning (90.89).</figcaption>
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Phi-3 on SuperGLUE with batch-wise selection at 25%" loading="lazy"></a>
+				<figcaption>Phi-3 on SuperGLUE with batch-wise selection at 25%.</figcaption>
 			</figure>
 
-
-			<h3>Pretraining from scratch</h3>
+			<p><strong>Pretraining.</strong> When pretraining LLaMA-3 models with 60M and 500M parameters on OpenWebText for 20k steps, UniPROT reaches a lower log-perplexity than GREATS, CoLM and full-batch training.</p>
 
 			<figure class="blog-figure">
-				<a href="fig6.png" target="_blank" rel="noopener" title="Open full size"><img src="fig6.png" alt="Figure 6 from the paper" loading="lazy"></a>
-				<figcaption><strong>Figure 6 from the paper.</strong> Pretraining LLaMA-3 500M and 60M on OpenWebText for 20k steps. UniPROT-PB reaches lower log-perplexity than GREATS, CoLM and even full-batch training.</figcaption>
+				<a href="fig6.png" target="_blank" rel="noopener" title="Open full size"><img src="fig6.png" alt="Log-perplexity when pretraining LLaMA-3 500M and 60M on OpenWebText" loading="lazy"></a>
+				<figcaption>Log-perplexity when pretraining LLaMA-3 500M and 60M on OpenWebText.</figcaption>
 			</figure>
 
-
-			<h3>How sensitive is it?</h3>
-			<p>Two knobs matter in practice: how many prototypes to keep, and how much entropic regularisation to use when solving the transport problem.</p>
+			<p><strong>Sensitivity.</strong> As the prototype ratio shrinks from 50% to 12.5%, UniPROT's validation loss on Zephyr-3B stays stable, while CoLM degrades noticeably. A smaller entropic regularisation \(\lambda\) gives a sharper transport plan and better downstream accuracy.</p>
 
 			<figure class="blog-figure">
-				<a href="fig5.png" target="_blank" rel="noopener" title="Open full size"><img src="fig5.png" alt="Figure 5 from the paper" loading="lazy"></a>
-				<figcaption><strong>Figure 5 from the paper.</strong> Validation log-perplexity on Zephyr-3B as the prototype ratio shrinks from 50% to 12.5%. UniPROT stays stable while CoLM degrades noticeably.</figcaption>
+				<a href="fig5.png" target="_blank" rel="noopener" title="Open full size"><img src="fig5.png" alt="Validation log-perplexity on Zephyr-3B at prototype ratios of 50%, 25% and 12" loading="lazy"></a>
+				<figcaption>Validation log-perplexity on Zephyr-3B at prototype ratios of 50%, 25% and 12.5%.</figcaption>
 			</figure>
-
 
 			<figure class="blog-figure">
-				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 2 from the paper.</strong> Entropic regularisation &lambda;. Smaller &lambda; makes the transport plan sharper and gives better downstream accuracy on GSM8K and SVAMP.</figcaption>
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Downstream accuracy for different values of the entropic regularisation \(\lambda\)" loading="lazy"></a>
+				<figcaption>Downstream accuracy for different values of the entropic regularisation \(\lambda\).</figcaption>
 			</figure>
 
+			<h2>Limitations</h2>
+			<ul>
+				<li><strong>Uniformity is a choice.</strong> If a class or source genuinely deserves more influence, equal weights cannot express that.</li>
+				<li><strong>The fast greedy's guarantee.</strong> It depends on a similarity ratio \(\alpha\), which can be small for some data.</li>
+				<li><strong>Similarities.</strong> Selection needs the similarities between all candidates and targets, a matrix that grows with the batch and the dataset.</li>
+			</ul>
 
-			<p class="blog-caveat">Uniformity is a choice, not a universal rule. If one class or source genuinely deserves more influence, equal weights won't express that. UniPROT is useful when selection should not silently equate "more examples in the source" with "more importance in the selected set".</p>
+			<h2>Takeaway</h2>
+			<p>Equal weights are a simple constraint with a hard optimisation problem behind it. Relaxing the target side of the transport problem keeps the uniformity and brings back diminishing returns. Plain greedy selection then works again, and the selected set represents small classes and small sources as well as large ones.</p>
+
+			<h2>Citation</h2>
+			<pre class="blog-bibtex"><code>@inproceedings{chanda2026uniprot,
+  title     = {{UniPROT}: Uniform Prototype Selection via Partial Optimal Transport with Submodular Guarantees},
+  author    = {Chanda, Prateek and Agrawal, Prayas and Gurumoorthy, Karthik S. and Ramakrishnan, Ganesh and Mishra, Bamdev and Jawanpuria, Pratik},
+  booktitle = {International Conference on Artificial Intelligence and Statistics},
+  year      = {2026}
+}</code></pre>
 
 			<p><a href="../../#publications">&larr; Back to publications</a></p>
 		</article>

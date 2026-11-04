@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="A research overview of Sculpting Subspaces, an adaptive SVD approach to continual full fine-tuning in large language models.">
-	<title>Sculpting Subspaces: Fine-Tuning LLMs Without Forgetting | Prateek Chanda</title>
+	<meta name="description" content="Continual full fine-tuning of LLMs by projecting each update away from the singular directions earlier tasks rely on.">
+	<title>Sculpting Subspaces: Constrained Full Fine-Tuning in LLMs for Continual Learning | Prateek Chanda</title>
 	<link rel="canonical" href="https://prateekchanda21.github.io/blog/sculpting-subspaces/">
 	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
 	<link rel="stylesheet" href="../../css/normalize.css">
@@ -13,7 +13,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
-		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+		onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
 </head>
 <body>
 	<main class="blog-page">
@@ -21,129 +21,119 @@
 
 		<article>
 			<header>
-				<h1 class="blog-title">Continual Fine-Tuning Without a Growing Stack of Adapters</h1>
+				<h1 class="blog-title">Sculpting Subspaces: Constrained Full Fine-Tuning in LLMs for Continual Learning</h1>
+				<div class="blog-authors">Nikhil Shivakumar Nayak, Krishnateja Killamsetty, Ligong Han, Abhishek Bhandwaldar, <u>Prateek Chanda</u>, Kai Xu, Hao Wang, Aldo Pareja, Oleg Silkin, Mustafa Eyceoz, Akash Srivastava</div>
 				<div class="blog-meta"><strong>ICLR 2026</strong> &middot; November 3, 2026</div>
 				<nav class="blog-resources" aria-label="Paper resources">
 					<a href="https://arxiv.org/abs/2504.07097" target="_blank" rel="noopener noreferrer">Paper</a>
 					<a href="https://github.com/Red-Hat-AI-Innovation-Team/orthogonal-subspace-learning" target="_blank" rel="noopener noreferrer">Code</a>
-					<a href="https://iclr.cc/virtual/2026/poster/10006812" target="_blank" rel="noopener noreferrer">ICLR presentation</a>
+					<a href="https://iclr.cc/virtual/2026/poster/10006812" target="_blank" rel="noopener noreferrer">Talk</a>
+					<a href="https://iclr.cc/media/iclr-2026/Slides/10006812.pdf" target="_blank" rel="noopener noreferrer">Slides</a>
 				</nav>
 			</header>
 
-			<div class="blog-tldr">
-				<strong>The short version</strong>
-				<ul>
-					<li>Fine-tuning an LLM on task after task tends to overwrite what it learned earlier (catastrophic forgetting).</li>
-					<li>We take an SVD of every weight matrix, <em>protect</em> the directions with large singular values, and let the new task update only the remaining low-singular-value directions.</li>
-					<li>How much each layer protects is chosen adaptively from a cheap importance score. The model keeps its size: no adapters, no stored gradients, no replay buffer.</li>
-				</ul>
-			</div>
+			<p>Fine-tune a language model on one task, then on another, and the second update overwrites part of the first. This is catastrophic forgetting, and the usual fixes give something up. Adapters such as LoRA freeze most of the model and add new parameters for every task. Replay methods keep old data around. We show that a model can be fine-tuned in full, task after task, without either.</p>
 
-			<p class="blog-lede">Fine-tune a language model on one task, then another, and the second update can quietly erase part of the first. The usual fixes either freeze most of the model and add a small adapter per task, or keep a copy of old data around. <em>Sculpting Subspaces</em> keeps full fine-tuning but restricts <em>which directions</em> each update can move in.</p>
-
-			<h2>The intuition</h2>
-			<p>A weight matrix is not equally important in every direction. If you write it as a sum of rank-one pieces ordered by singular value, the first few pieces carry most of what the layer does, and the long tail contributes very little: you can delete much of it without the model noticing (we verify this by pruning in the paper's appendix). That tail is spare capacity, and it is where new tasks can be written without disturbing the old ones.</p>
+			<p>Our method updates every weight matrix, but only in directions that earlier tasks do not use. It finds those directions with a singular value decomposition (SVD) of each layer, and decides layer by layer how much to protect. On a 15-task benchmark with T5-Large it reaches 71.3% average accuracy, where plain sequential fine-tuning ends at 7.4%. On TRACE with LLaMA-2-7B-Chat it reaches 48.4%, against 41.3% for O-LoRA.</p>
 
 			<figure class="blog-figure">
-				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Diagram of the adaptive SVD continual fine-tuning method" loading="lazy"></a>
-				<figcaption><strong>Figure 1 from the paper.</strong> Overview of the adaptive SVD method. Layer importance, computed from input&ndash;output similarity, sets each layer's retention ratio r<sup>(l)</sup>. The SVD splits every weight matrix into a high-rank subspace kept for earlier tasks and a low-rank subspace, and the new task's gradients are projected into the low-rank part.</figcaption>
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Overview" loading="lazy"></a>
+				<figcaption>Overview. Each layer's importance sets how many singular directions it keeps for earlier tasks (the high-rank subspace). Gradients for a new task are projected onto the remaining low-rank subspace.</figcaption>
 			</figure>
 
-			<h2>The method, one equation at a time</h2>
-			<p>Let the model's parameters be the weight matrices \(\theta = \{W^{(1)},\dots,W^{(L)}\}\), trained on a sequence of tasks \(\mathcal{D}_1, \mathcal{D}_2, \dots, \mathcal{D}_T\).</p>
+			<h2>Why full fine-tuning forgets, and why adapters are not the fix</h2>
+			<p>When a model is fine-tuned on a new task, gradient descent is free to move any parameter in any direction. Nothing stops it from changing exactly the directions the previous task relied on. Parameter-efficient methods avoid this by training only a small adapter per task. That works, but the adapters add up: a 15-task stream means 15 sets of extra parameters, and each task learns in a small, fixed slice of the model. Regularisation methods such as EWC penalise changes to important weights without preventing them, so interference still builds up over a long sequence.</p>
+			<p>We want three things at once: update all parameters, keep the parameter count fixed, and leave earlier tasks alone. What makes this possible is that a weight matrix is not equally important in every direction.</p>
 
-			<div class="blog-math">
-				<span class="blog-math-label">Step 1 · Decompose each layer (Eq. 1)</span>
-				$$W^{(l)} = U^{(l)}\,\Sigma^{(l)}\,\big(V^{(l)}\big)^{\top}$$
-				<p class="in-words"><strong>In words:</strong> write the layer as output directions \(U\), strengths \(\Sigma\) (sorted largest first) and input directions \(V\). This is done once per task, not every step.</p>
-			</div>
+			<h2>The idea: protect the large singular directions</h2>
+			<p>Write each weight matrix of layer \(l\) with its SVD,</p>
+			\[ W^{(l)} = U^{(l)}\,\Sigma^{(l)}\,\big(V^{(l)}\big)^{\top}, \]
+			<p>where the singular values in \(\Sigma^{(l)}\) are sorted from large to small, and the columns of \(U^{(l)}\) and \(V^{(l)}\) are the output and input directions they belong to. Directions with small singular values contribute little: many of them can be removed and the model barely changes. Directions with large singular values carry what the model knows. So the rule is simple. Keep the top directions for what has already been learned, and let the new task update the rest. The SVD is computed once per task, not at every step.</p>
+			<p><strong>Why singular values?</strong> A second-order Taylor expansion of the old tasks' loss says forgetting is smallest when updates avoid the high-curvature directions of the Hessian. A Hessian for a 7B-parameter model is out of reach, but its largest eigen-directions line up well with the largest singular directions of the weights. The SVD is a cheap stand-in.</p>
 
-			<div class="blog-math">
-				<span class="blog-math-label">Step 2 · Score how important each layer is (Eq. 2)</span>
-				$$I^{(l)} = \frac{1}{N}\sum_{i=1}^{N} \cos\!\big(X^{(l)}_i,\; Y^{(l)}_i\big), \qquad Y^{(l)}_i = W^{(l)} X^{(l)}_i$$
-				<p class="in-words"><strong>In words:</strong> run samples from the previous task through the layer and check whether its output points in the same direction as its input. A layer that mostly <em>preserves</em> its input is carrying representations forward, so it should be protected more. Scores are normalised to average 1 across layers.</p>
-			</div>
+			<h2>Ingredient 1: how much to protect, layer by layer</h2>
+			<p>Not every layer needs the same protection. We measure a layer's importance by how little it changes its input. Run \(N\) samples from the previous task through the layer and compare the input activations \(X^{(l)}_i\) with the outputs \(Y^{(l)}_i = W^{(l)}X^{(l)}_i\):</p>
+			\[ I^{(l)} = \frac{1}{N}\sum_{i=1}^{N} \cos\big(X^{(l)}_i,\; Y^{(l)}_i\big). \]
+			<p>A layer with high similarity mostly passes representations through, and those are the layers that carry features from one task to the next. The scores are normalised to average one across layers. Two hyperparameters turn a score into a retention ratio: a minimum ratio (mrr) that every layer keeps, and a target ratio (trr) for a layer of average importance,</p>
+			\[ r^{(l)} = \mathrm{mrr} + I^{(l)}\,\big(\mathrm{trr} - \mathrm{mrr}\big). \]
+			<p>The top \(r^{(l)}\) fraction of singular vectors form the protected subspace \(U^{(l)}_{\text{high}}, V^{(l)}_{\text{high}}\). We also tried a fixed rank everywhere, as in LASER, which ignores how different layers are, and thresholds from random-matrix theory, as in SPECTRUM, which turned out to be unstable across a sequence of tasks.</p>
 
-			<div class="blog-math">
-				<span class="blog-math-label">Step 3 · Turn importance into a retention ratio (Eq. 3)</span>
-				$$r^{(l)} = \mathrm{mrr} + I^{(l)}\,\big(\mathrm{trr} - \mathrm{mrr}\big)$$
-				<p class="in-words"><strong>In words:</strong> every layer protects at least a minimum fraction (<em>mrr</em>); an average layer protects the target fraction (<em>trr</em>); important layers protect more. The top \(r^{(l)}\) fraction of singular vectors form \(U_{\text{high}}, V_{\text{high}}\); the rest are free.</p>
-			</div>
+			<h2>Ingredient 2: project the gradient</h2>
+			<p>With the protected subspace fixed, every gradient step removes the part of the gradient that would move it:</p>
+			\[ \nabla W^{(l)}_{\text{proj}} = \nabla W^{(l)} - U^{(l)}_{\text{high}}\big(U^{(l)}_{\text{high}}\big)^{\top}\,\nabla W^{(l)}\,V^{(l)}_{\text{high}}\big(V^{(l)}_{\text{high}}\big)^{\top}. \]
+			<p>The optimizer then steps with \(\nabla W^{(l)}_{\text{proj}}\) as usual. Every parameter can still change, but the change lies in the subspace earlier tasks did not need. No gradients from old tasks are stored, and nothing is added to the model.</p>
 
-			<div class="blog-math">
-				<span class="blog-math-label">Step 4 · Project every gradient (Eq. 4)</span>
-				$$\nabla W^{(l)}_{\text{proj}} = \nabla W^{(l)} \;-\; U^{(l)}_{\text{high}}\big(U^{(l)}_{\text{high}}\big)^{\top}\,\nabla W^{(l)}\,V^{(l)}_{\text{high}}\big(V^{(l)}_{\text{high}}\big)^{\top}$$
-				<p class="in-words"><strong>In words:</strong> take the ordinary gradient and subtract the part of it that lives in the protected input and output directions. The optimizer then steps with \(\nabla W_{\text{proj}}\), so the update only moves through the free subspace.</p>
-			</div>
+			<h2>The training loop</h2>
+			<p>For each new task:</p>
+			<ul>
+				<li><strong>Score.</strong> Compute the layer importance \(I^{(l)}\) from the previous task's activations.</li>
+				<li><strong>Split.</strong> Take the SVD of each weight matrix and keep the top \(r^{(l)}\) singular vectors as the protected subspace.</li>
+				<li><strong>Train.</strong> Fine-tune on the new task, replacing every gradient with its projection.</li>
+			</ul>
 
-			<h3>Why large singular values?</h3>
-			<p>The principled choice would be to freeze the directions where the old tasks' loss is most curved, which are the top eigenvectors of the Hessian. A second-order Taylor argument in the appendix shows that keeping updates out of those high-curvature directions minimises forgetting. Computing a Hessian for a 7B model is out of the question, though. Prior empirical work finds that large Hessian eigenvalues line up with large singular values of the weights, and that high input–output-similarity layers have higher curvature. SVD plus the layer score is a cheap stand-in for that Hessian computation.</p>
-
-			<ol class="blog-steps">
-				<li><strong>New task arrives.</strong> Compute layer importance I from the previous task's activations.</li>
-				<li><strong>SVD each layer.</strong> Keep the top r(l) singular vectors as the protected subspace.</li>
-				<li><strong>Train with projection.</strong> Every gradient step uses ∇W<sub>proj</sub> instead of ∇W.</li>
-				<li><strong>Repeat.</strong> The next task recomputes the split on the updated weights.</li>
-			</ol>
-			<p class="blog-caveat">The whole algorithm. Nothing grows with the number of tasks: no new modules and no stored data or gradients.</p>
-
-			<h2>Does it actually stop forgetting?</h2>
-			<p>We start with the two standard continual-learning sequences: five text-classification tasks, and a longer 15-task stream that mixes in GLUE, SuperGLUE and IMDB. Plain sequential fine-tuning (SeqFT) shows the problem we are solving. After 15 tasks, T5-Large is down to 7.4% average accuracy, having overwritten almost everything but the last task.</p>
+			<h2>Results</h2>
+			<p>We evaluate T5-Large and LLaMA-2 7B on the standard 5-task benchmark (AG News, Amazon, Yelp, DBpedia, Yahoo) and on a 15-task benchmark that adds tasks from GLUE, SuperGLUE and IMDB. We report average accuracy over all tasks after training on the last one, averaged over three task orders.</p>
 
 			<figure class="blog-figure">
-				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 1 from the paper.</strong> Average accuracy after the final task. On the 15-task stream we reach 71.3%, ahead of O-LoRA (69.6%) and every regularisation and replay baseline. ProgPrompt adds task-specific prompts, and PerTaskFT and multi-task learning (MTL) train separate models or see all tasks at once, so they serve as reference points rather than direct competitors.</figcaption>
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Average accuracy (%) after the final task" loading="lazy"></a>
+				<figcaption>Average accuracy (%) after the final task. Multi-task learning (MTL, all tasks at once) and PerTaskFT (one model per task) are reference points rather than continual learners.</figcaption>
 			</figure>
 
-			<p>The gap widens as the stream gets longer. On five tasks we roughly tie O-LoRA. On fifteen we pull ahead, because the free subspace is recomputed for every new task instead of each task's adapter being frozen in place.</p>
-
-			<h3>A harder stream: TRACE</h3>
-			<p>Those benchmarks are all classification. TRACE is closer to real use: eight instruction-tuned tasks spanning multilingual understanding, domain knowledge, arithmetic and code, learned one after another by LLaMA-2-7B-Chat.</p>
+			<p><strong>Standard benchmarks.</strong> Plain sequential fine-tuning drops to 7.4% on the 15-task stream. We reach 75.9% on 5 tasks and 71.3% on 15, ahead of O-LoRA (75.8% and 69.6%) and of every replay and regularisation baseline. The margin grows with the length of the stream. ProgPrompt is higher on 15 tasks, but it adds a prompt for every task. With LLaMA-2 7B on the 5-task benchmark we reach 79.6%, more than three points above the previous best.</p>
+			<p><strong>TRACE.</strong> TRACE is closer to how models are used: eight instruction-tuned tasks covering multilingual understanding, domain knowledge, arithmetic and code, learned one after another by LLaMA-2-7B-Chat. We reach 48.4% average accuracy against 41.3% for O-LoRA. Backward transfer is positive (7.1), so on average the earlier tasks got slightly better as later ones were learned.</p>
 
 			<figure class="blog-figure">
-				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 2 from the paper.</strong> TRACE results. We reach 48.4% average accuracy against O-LoRA's 41.3%. Backward transfer is positive (+7.1): on average, earlier tasks got slightly <em>better</em> as later ones were learned.</figcaption>
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="TRACE with LLaMA-2-7B-Chat" loading="lazy"></a>
+				<figcaption>TRACE with LLaMA-2-7B-Chat. Backward transfer measures how much earlier tasks change after later ones are learned.</figcaption>
 			</figure>
 
-
-			<h3>What did the model lose along the way?</h3>
-			<p>Learning eight tasks is not much use if the chat model forgets how to be a chat model. So after TRACE we compare the final model with the original LLaMA-2-7B-Chat on general benchmarks, and in head-to-head judgements of helpfulness and safety.</p>
+			<p><strong>What the model keeps.</strong> A chat model that learns eight tasks but forgets how to chat is not much use. After TRACE, general ability holds or improves on MMLU, TydiQA, BoolQ and PIQA. GSM8K and BBH drop, so multi-step math and reasoning is where the cost shows. Against the original chat model, ours wins or ties 80% of helpfulness comparisons and 96% of safety comparisons, while replay, sequential LoRA and plain fine-tuning mostly lose on helpfulness.</p>
 
 			<figure class="blog-figure">
-				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 3 from the paper.</strong> General ability before and after continual learning. MMLU, TydiQA, BoolQ and PIQA hold or improve. GSM8K and BBH drop, so multi-step math and reasoning is where the cost shows up.</figcaption>
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="General ability of the base chat model and of our model after continual learning on TRACE" loading="lazy"></a>
+				<figcaption>General ability of the base chat model and of our model after continual learning on TRACE.</figcaption>
 			</figure>
-
 
 			<figure class="blog-figure">
-				<a href="table4.png" target="_blank" rel="noopener" title="Open full size"><img src="table4.png" alt="Table 4 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 4 from the paper.</strong> Win / tie / lose (%) against the base chat model. Our model wins or ties 80% of helpfulness comparisons and 96% of safety comparisons, while replay, sequential LoRA and plain fine-tuning mostly lose on helpfulness.</figcaption>
+				<a href="table4.png" target="_blank" rel="noopener" title="Open full size"><img src="table4.png" alt="Win / tie / lose (%) against LLaMA-2-7B-Chat on instruction following and safety" loading="lazy"></a>
+				<figcaption>Win / tie / lose (%) against LLaMA-2-7B-Chat on instruction following and safety.</figcaption>
 			</figure>
 
-
-			<h3>Is the low-singular-value subspace really free?</h3>
-			<p>Everything rests on one assumption: directions with small singular values can be overwritten without hurting what the model already does. We test it directly. We replace weight matrices of Granite 8B with low-rank approximations, layer by layer, and re-run the leaderboard benchmarks.</p>
+			<p><strong>Is the low-rank subspace really free?</strong> The method assumes that small singular directions can be overwritten without harm. We test this on Granite 8B by replacing weight matrices with low-rank approximations, layer by layer, and re-running the Open LLM Leaderboard tasks. Scores move very little until almost the whole spectrum is removed.</p>
 
 			<figure class="blog-figure">
-				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Figure 2 from the paper" loading="lazy"></a>
-				<figcaption><strong>Figure 2 from the paper.</strong> Leaderboard scores after low-rank approximation of the value projection in selected layers of Granite 8B. Note the narrow y-axis ranges. Even removing 50% of the spectrum barely moves the scores, and only the extreme 99% cut produces visible dips.</figcaption>
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Leaderboard scores after low-rank approximation of the value projection in selected layers of Granite 8B, at 10%, 50% an" loading="lazy"></a>
+				<figcaption>Leaderboard scores after low-rank approximation of the value projection in selected layers of Granite 8B, at 10%, 50% and 99% reduction. Note the narrow ranges on the y-axes.</figcaption>
 			</figure>
 
-
-			<h3>Do both ingredients matter?</h3>
+			<p><strong>What matters.</strong> Both ingredients are needed:</p>
+			<ul>
+				<li><strong>Adaptive retention.</strong> Halving mrr and trr, so that less is protected, drops 5-task accuracy with LLaMA-2 7B from 79.6% to 51.5%.</li>
+				<li><strong>Projection.</strong> Without it, low-rank updates still interfere freely with earlier tasks, and accuracy falls to 31.2%.</li>
+			</ul>
 
 			<figure class="blog-figure">
-				<a href="table6.png" target="_blank" rel="noopener" title="Open full size"><img src="table6.png" alt="Table 6 from the paper" loading="lazy"></a>
-				<figcaption><strong>Table 6 from the paper.</strong> Ablation on the 5-task benchmark with LLaMA-2 7B. Halving the retention ratios, so less is protected, drops accuracy from 79.6% to 51.5%. Removing the projection entirely gives 31.2%.</figcaption>
+				<a href="table6.png" target="_blank" rel="noopener" title="Open full size"><img src="table6.png" alt="Ablations on the 5-task benchmark with LLaMA-2 7B" loading="lazy"></a>
+				<figcaption>Ablations on the 5-task benchmark with LLaMA-2 7B.</figcaption>
 			</figure>
 
-			<p>Both pieces are needed. Protect too little and the old tasks get overwritten. Skip the projection and even low-rank updates interfere freely with everything learned before.</p>
+			<h2>Limitations</h2>
+			<ul>
+				<li><strong>Rank sensitivity.</strong> Performance drops sharply when the retention ratios are badly chosen. A more data-driven way to set the rank would help.</li>
+				<li><strong>Fixed budget.</strong> Capacity is allocated up front, so on very long task streams the free subspace can run out.</li>
+				<li><strong>Cost.</strong> Repeated SVDs of every weight matrix add compute on large models.</li>
+			</ul>
 
-			<div class="blog-callout">
-				<p><strong>Limitations.</strong> Results are sensitive to the retention ratios, as the ablation shows. The subspace budget is allocated up front, which can be a problem on very long task streams. Repeated SVDs of every matrix also cost compute on large models.</p>
-			</div>
+			<h2>Takeaway</h2>
+			<p>Full fine-tuning and continual learning are not at odds. Weight matrices have room to spare in their small singular directions. Once updates are confined to that room, a model can keep learning new tasks at a fixed size without overwriting the old ones.</p>
 
-			<p>The new idea is not SVD itself. It is using the decomposition to decide <em>where</em> a full-parameter update may go. That puts the method between adapters, which add parameters, and unconstrained fine-tuning, which forgets.</p>
+			<h2>Citation</h2>
+			<pre class="blog-bibtex"><code>@inproceedings{nayak2026sculpting,
+  title     = {Sculpting Subspaces: Constrained Full Fine-Tuning in {LLMs} for Continual Learning},
+  author    = {Nayak, Nikhil Shivakumar and Killamsetty, Krishnateja and Han, Ligong and Bhandwaldar, Abhishek and Chanda, Prateek and Xu, Kai and Wang, Hao and Pareja, Aldo and Silkin, Oleg and Eyceoz, Mustafa and Srivastava, Akash},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2026}
+}</code></pre>
 
 			<p><a href="../../#publications">&larr; Back to publications</a></p>
 		</article>
