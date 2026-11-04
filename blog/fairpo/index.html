@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of FairPO, preference optimization with group-robust balancing for under-served labels in multi-label classification.">
+	<title>FairPO: Fair Preference Optimization for Multi-Label Learning | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/fairpo/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Helping the Labels a Classifier Keeps Missing</h1>
+				<div class="blog-meta"><strong>NeurIPS OPT Workshop 2025</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2505.02433" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://github.com/soumenkm/FairPO" target="_blank" rel="noopener noreferrer">Code</a>
+					<a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank" rel="noopener noreferrer">Workshop version</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>A multi-label classifier trained on imbalanced data does well on common labels and keeps missing rare ones.</li>
+					<li>FairPO splits labels into a <em>privileged</em> group to improve (here, the 20% rarest) and the rest, which must not fall more than \(\epsilon\) below a reference model.</li>
+					<li>For privileged labels, a wrong label that the model scores too highly becomes a preference pair, trained with DPO, SimPO or CPO-style losses. GRPO adaptively balances the two groups. On MS-COCO, rare-label mAP rises by 3.44 points over the BCE baseline, with no significant drop on the rest.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">In multi-label classification an image can have several correct labels. Trained on imbalanced data, a model may handle common labels well and repeatedly miss the rare ones. FairPO improves a chosen group of labels while guarding everything else.</p>
+
+			<h2>Two groups, two goals</h2>
+			<p>We have data \(\{(x_i, y_i)\}\) with \(y_i \in \{0,1\}^{|\mathcal{T}|}\) over a label set \(\mathcal{T}\), a model producing a score \(m(x_i; w_t)\) per label, and a reference model \(\hat w\), the ordinary BCE-trained classifier. The labels are split into a privileged group \(P\) and the rest \(\bar P = \mathcal{T} \setminus P\). In our experiments \(P\) is the least frequent 20% of labels. The framework allows any split, for example by domain importance.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">The overall objective (Eq. 1)</span>
+				$$\min_{\{w_t\}} \;\max_{\alpha_P + \alpha_{\bar P} = 1} \;\Big[\, \alpha_P\, \mathcal{L}_P \;+\; \alpha_{\bar P}\, \mathcal{L}_{\bar P} \,\Big]$$
+				<p class="in-words"><strong>In words:</strong> train the model to do well on whichever group is currently doing <em>worse</em>. The adversarial weights \(\alpha\) shift toward the group with the larger loss, which is the group-robust (GRPO) idea.</p>
+			</div>
+
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="FairPO framework flowchart" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> The FairPO framework. Privileged labels get a preference loss on confusing cases and BCE otherwise. Non-privileged labels get a BCE loss constrained against the reference model. GRPO adaptively balances the two group losses.</figcaption>
+			</figure>
+
+			<h2>Turning confusion into preferences</h2>
+			<p>Per-label losses like BCE or focal loss ask whether each score is right in isolation. Rare labels are often lost for a relational reason: a plausible wrong label outranks them. So for each privileged label we look for the labels the model currently confuses it with.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Confusing counterparts (Eqs. 9–10)</span>
+				$$S^{\text{neg}}_{il} = \{k : y_{ik} = 0,\; m(x_i; w_k) \ge m(x_i; w_l)\}, \qquad S^{\text{pos}}_{il} = \{k : y_{ik} = 1,\; m(x_i; w_k) \le m(x_i; w_l)\}$$
+				<p class="in-words"><strong>In words:</strong> if \(l\) is a true label, its confusing negatives are wrong labels scored at least as high. If \(l\) is a wrong label, its confusing positives are true labels scored no higher. Either way the pair is ranked the wrong way round.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Preference loss, DPO-style (Eq. 12)</span>
+				$$\mathcal{L}^{\text{DPO}}_{\text{pref}}(x_i, p, d) = -\log \sigma\!\left( \beta \left[ \log \frac{m(x_i; w_p)}{m(x_i; \hat w_p)} \;-\; \log \frac{m(x_i; w_d)}{m(x_i; \hat w_d)} \right] \right)$$
+				<p class="in-words"><strong>In words:</strong> \(p\) is the label that should win and \(d\) the one that should lose. The loss is small when the model has raised \(p\)'s score, relative to the reference model, more than \(d\)'s. This is DPO's recipe with label scores in place of response likelihoods.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Conditional objective with a fallback (Eq. 13)</span>
+				$$\mathcal{L}_P = \mathbb{E}_{(x_i, l),\, l \in P}\Big[\, \mathbf{1}_{S_{il} \neq \emptyset}\, \mathcal{L}_{\text{pref}}(x_i, p, d) \;+\; \mathbf{1}_{S_{il} = \emptyset}\, \ell_{\text{BCE}}(x_i, y_{il}; w_l) \,\Big]$$
+				<p class="in-words"><strong>In words:</strong> use the preference loss when there is something to fix, and ordinary BCE when there isn't. Without the fallback, the training signal dries up as the model improves and confusing pairs become rare.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">The CPO variant: reference-free, plus a BCE anchor (Eq. 15)</span>
+				$$\mathcal{L}^{\text{CPO}}_{\text{pref}} = -\log \sigma\!\left( \beta \log \frac{m(x_i; w_p)}{m(x_i; w_d)} \right) + \lambda_{\text{CPO}}\, \ell_{\text{BCE}}(x_i, y_{il}; w_l)$$
+				<p class="in-words"><strong>In words:</strong> compare the two scores directly, without a reference model, and add a BCE term so the model also learns <em>absolute</em> correctness, not just the ranking. This was the best variant. The SimPO variant instead adds a target margin \(\gamma\) inside the sigmoid.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Protecting everyone else (non-privileged hinge)</span>
+				$$\mathcal{L}_{\bar P} = \max\!\Big(0,\; \ell_{\text{BCE}}(w) - \ell_{\text{BCE}}(\hat w) - \epsilon \Big)$$
+				<p class="in-words"><strong>In words:</strong> the common labels are not pushed to improve; they are only penalised if they get worse than the reference model by more than a slack \(\epsilon\).</p>
+			</div>
+
+			<p>Training alternates two mirror steps: mirror <em>ascent</em> on \(\alpha\), then mirror <em>descent</em> on the model weights. The two group losses have different scales, so \(\alpha\) is updated from each loss's relative change against its running average rather than from the raw values. This keeps the balance from oscillating.</p>
+
+			<h2>Results</h2>
+			<p>The base model is a frozen ViT with a small MLP head per label, evaluated on MS-COCO 2014 and NUS-WIDE. The reference model is the BCE-trained baseline.</p>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Table 1 of the paper (mean of 3 runs). FairPO-CPO is +3.44 mAP points over BCE-SFT and +1.41 over the strongest baseline, focal loss (p &lt; 0.05).</caption>
+					<thead><tr><th>Method</th><th>MS-COCO: mAP on privileged (rarest 20%) labels</th></tr></thead>
+					<tbody>
+					<tr><td>BCE-SFT</td><td>86.32</td></tr>
+					<tr><td>Group DRO + BCE</td><td>87.92</td></tr>
+					<tr><td>Focal loss</td><td>88.35</td></tr>
+					<tr><td>FairPO-SimPO</td><td>87.67</td></tr>
+					<tr><td>FairPO-DPO</td><td>88.02</td></tr>
+					<tr class="is-ours"><td>FairPO-CPO</td><td>89.76</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Privileged (P) and non-privileged (P&#772;) mAP. The drop on P&#772; relative to BCE (&minus;0.31 and &minus;0.41) is not statistically significant.</caption>
+					<thead><tr><th>mAP</th><th>MS-COCO P</th><th>MS-COCO P&#772;</th><th>NUS-WIDE P</th><th>NUS-WIDE P&#772;</th></tr></thead>
+					<tbody>
+					<tr><td>BCE-SFT (reference)</td><td>86.32</td><td>90.65</td><td>63.53</td><td>70.24</td></tr>
+					<tr><td>Focal loss</td><td>88.35</td><td>89.81</td><td>65.81</td><td>68.95</td></tr>
+					<tr class="is-ours"><td>FairPO-CPO</td><td>89.76</td><td>90.34</td><td>67.12</td><td>69.83</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p>The ablations show that every piece matters. Replacing the preference loss with BCE, dropping the \(\bar P\) constraint, or fixing \(\alpha\) at 0.5/0.5 all hurt. A "global CPO" applied to every label without the group split is better than BCE but clearly worse than FairPO. Using <em>only</em> confusing negatives, and ignoring confusing positives, collapses privileged mAP to 73.15.</p>
+
+			<p class="blog-caveat">This is a targeted reallocation of learning effort, not a proof of fairness under every definition. Which labels get priority must be chosen for the task, and the experiments use frequency-defined groups. The set of confusing pairs changes during training, the DPO variant needs a reference model, and the GRPO balance needs tuning.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

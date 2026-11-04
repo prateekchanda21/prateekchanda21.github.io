@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of Sculpting Subspaces, an adaptive SVD approach to continual full fine-tuning in large language models.">
+	<title>Sculpting Subspaces: Fine-Tuning LLMs Without Forgetting | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/sculpting-subspaces/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Continual Fine-Tuning Without a Growing Stack of Adapters</h1>
+				<div class="blog-meta"><strong>ICLR 2026</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2504.07097" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://github.com/Red-Hat-AI-Innovation-Team/orthogonal-subspace-learning" target="_blank" rel="noopener noreferrer">Code</a>
+					<a href="https://iclr.cc/virtual/2026/poster/10006812" target="_blank" rel="noopener noreferrer">ICLR presentation</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>Fine-tuning an LLM on task after task tends to overwrite what it learned earlier (catastrophic forgetting).</li>
+					<li>We take an SVD of every weight matrix, <em>protect</em> the directions with large singular values, and let the new task update only the remaining low-singular-value directions.</li>
+					<li>How much each layer protects is chosen adaptively from a cheap importance score. The model keeps its size: no adapters, no stored gradients, no replay buffer.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">Fine-tune a language model on one task, then another, and the second update can quietly erase part of the first. The usual fixes either freeze most of the model and add a small adapter per task, or keep a copy of old data around. <em>Sculpting Subspaces</em> keeps full fine-tuning but restricts <em>which directions</em> each update can move in.</p>
+
+			<h2>The intuition</h2>
+			<p>A weight matrix is not equally important in every direction. If you write it as a sum of rank-one pieces ordered by singular value, the first few pieces carry most of what the layer does, and the long tail contributes very little: you can delete much of it without the model noticing (we verify this by pruning in the paper's appendix). That tail is spare capacity, and it is where new tasks can be written without disturbing the old ones.</p>
+
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="Diagram of the adaptive SVD continual fine-tuning method" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> Overview of the adaptive SVD method. Layer importance, computed from input&ndash;output similarity, sets each layer's retention ratio r<sup>(l)</sup>. The SVD splits every weight matrix into a high-rank subspace kept for earlier tasks and a low-rank subspace, and the new task's gradients are projected into the low-rank part.</figcaption>
+			</figure>
+
+			<h2>The method, one equation at a time</h2>
+			<p>Let the model's parameters be the weight matrices \(\theta = \{W^{(1)},\dots,W^{(L)}\}\), trained on a sequence of tasks \(\mathcal{D}_1, \mathcal{D}_2, \dots, \mathcal{D}_T\).</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Step 1 · Decompose each layer (Eq. 1)</span>
+				$$W^{(l)} = U^{(l)}\,\Sigma^{(l)}\,\big(V^{(l)}\big)^{\top}$$
+				<p class="in-words"><strong>In words:</strong> write the layer as output directions \(U\), strengths \(\Sigma\) (sorted largest first) and input directions \(V\). This is done once per task, not every step.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Step 2 · Score how important each layer is (Eq. 2)</span>
+				$$I^{(l)} = \frac{1}{N}\sum_{i=1}^{N} \cos\!\big(X^{(l)}_i,\; Y^{(l)}_i\big), \qquad Y^{(l)}_i = W^{(l)} X^{(l)}_i$$
+				<p class="in-words"><strong>In words:</strong> run samples from the previous task through the layer and check whether its output points in the same direction as its input. A layer that mostly <em>preserves</em> its input is carrying representations forward, so it should be protected more. Scores are normalised to average 1 across layers.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Step 3 · Turn importance into a retention ratio (Eq. 3)</span>
+				$$r^{(l)} = \mathrm{mrr} + I^{(l)}\,\big(\mathrm{trr} - \mathrm{mrr}\big)$$
+				<p class="in-words"><strong>In words:</strong> every layer protects at least a minimum fraction (<em>mrr</em>); an average layer protects the target fraction (<em>trr</em>); important layers protect more. The top \(r^{(l)}\) fraction of singular vectors form \(U_{\text{high}}, V_{\text{high}}\); the rest are free.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Step 4 · Project every gradient (Eq. 4)</span>
+				$$\nabla W^{(l)}_{\text{proj}} = \nabla W^{(l)} \;-\; U^{(l)}_{\text{high}}\big(U^{(l)}_{\text{high}}\big)^{\top}\,\nabla W^{(l)}\,V^{(l)}_{\text{high}}\big(V^{(l)}_{\text{high}}\big)^{\top}$$
+				<p class="in-words"><strong>In words:</strong> take the ordinary gradient and subtract the part of it that lives in the protected input and output directions. The optimizer then steps with \(\nabla W_{\text{proj}}\), so the update only moves through the free subspace.</p>
+			</div>
+
+			<h3>Why large singular values?</h3>
+			<p>The principled choice would be to freeze the directions where the old tasks' loss is most curved, which are the top eigenvectors of the Hessian. A second-order Taylor argument in the appendix shows that keeping updates out of those high-curvature directions minimises forgetting. Computing a Hessian for a 7B model is out of the question, though. Prior empirical work finds that large Hessian eigenvalues line up with large singular values of the weights, and that high input–output-similarity layers have higher curvature. SVD plus the layer score is a cheap stand-in for that Hessian computation.</p>
+
+			<ol class="blog-steps">
+				<li><strong>New task arrives.</strong> Compute layer importance I from the previous task's activations.</li>
+				<li><strong>SVD each layer.</strong> Keep the top r(l) singular vectors as the protected subspace.</li>
+				<li><strong>Train with projection.</strong> Every gradient step uses ∇W<sub>proj</sub> instead of ∇W.</li>
+				<li><strong>Repeat.</strong> The next task recomputes the split on the updated weights.</li>
+			</ol>
+			<p class="blog-caveat">The whole algorithm. Nothing grows with the number of tasks: no new modules and no stored data or gradients.</p>
+
+			<h2>How it performed</h2>
+			<p>We evaluate T5-Large and LLaMA-2 7B on the standard 5-task and the longer 15-task continual-learning sequences (average accuracy after the last task, averaged over three task orders), and LLaMA-2 7B-Chat on the harder TRACE benchmark.</p>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>From Table 1 of the paper. Plain sequential fine-tuning collapses to 7.4%. Constraining the update directions recovers most of the gap to joint multi-task training without adding per-task parameters.</caption>
+					<thead><tr><th>Method</th><th>T5-Large, 15-task sequence: average accuracy (%)</th></tr></thead>
+					<tbody>
+					<tr><td>SeqFT (plain fine-tuning)</td><td>7.4%</td></tr>
+					<tr><td>EWC</td><td>45.1%</td></tr>
+					<tr><td>IncLoRA</td><td>61.2%</td></tr>
+					<tr><td>LFPT5</td><td>69.2%</td></tr>
+					<tr><td>O-LoRA</td><td>69.6%</td></tr>
+					<tr class="is-ours"><td>Ours (adaptive SVD)</td><td>71.3%</td></tr>
+					<tr><td>Multi-task (upper bound)</td><td>76.5%</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Table 2 of the paper. Positive backward transfer means earlier tasks did not degrade on average.</caption>
+					<thead><tr><th>TRACE (LLaMA-2-7B-Chat)</th><th>Average accuracy</th><th>Backward transfer</th></tr></thead>
+					<tbody>
+					<tr><td>SeqFT</td><td>23.0</td><td>&minus;8.3</td></tr>
+					<tr><td>O-LoRA</td><td>41.3</td><td>6.2</td></tr>
+					<tr class="is-ours"><td>Ours (adaptive SVD)</td><td>48.4</td><td>7.1</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p>On the 5-task benchmark with LLaMA-2 7B the method reaches 79.6% average accuracy. After continual learning on TRACE we also check general ability, instruction following and safety against the base chat model. MMLU, TydiQA, BoolQ and PIQA are preserved or improve; GSM8K and BBH drop. Helpfulness and safety win rates are clearly better than replay or sequential LoRA.</p>
+
+			<div class="blog-callout">
+				<p><strong>Limitations.</strong> Results are sensitive to the retention ratios: a badly chosen rank hurts noticeably. The subspace budget is allocated up front, which can be a problem on very long task streams. Repeated SVDs of every matrix also cost compute on large models.</p>
+			</div>
+
+			<p>The new idea is not SVD itself. It is using the decomposition to decide <em>where</em> a full-parameter update may go. That puts the method between adapters, which add parameters, and unconstrained fine-tuning, which forgets.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

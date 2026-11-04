@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of OnlineSubmod, a bandit-guided submodular curriculum for adaptive subset selection with validation-driven rewards.">
+	<title>Bandit Guided Submodular Curriculum for Adaptive Subset Selection | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/adaptive-subset-selection/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Let Validation Decide What the Model Learns Next</h1>
+				<div class="blog-meta"><strong>NeurIPS 2025</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2511.22944" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://github.com/efficiency-learning/banditsubmod" target="_blank" rel="noopener noreferrer">Code</a>
+					<a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank" rel="noopener noreferrer">OpenReview</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>"Easy first, hard later" sounds sensible, but what counts as easy for <em>this</em> model at <em>this</em> point in training keeps changing.</li>
+					<li>OnlineSubmod treats different submodular selection rules (representative, diverse, &hellip;) as arms of a multi-armed bandit, and picks one per step to choose the training subset.</li>
+					<li>Each arm is scored by a validation-aware reward: a gradient-based estimate of how much training on its subset would cut validation loss. The policy provably has no regret, and beats fixed curricula and adaptive selection baselines on vision and LLM fine-tuning.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">Curriculum learning needs a notion of difficulty, and difficulty is slippery. Earlier work used submodular functions to define it. OnlineSubmod instead asks which <em>kind</em> of subset is most useful right now, and lets validation feedback decide.</p>
+
+			<h2>Different rules pick different subsets</h2>
+			<p>A submodular function scores a set with diminishing returns: the more similar points you already have, the less a new one adds. Different functions encode different ideas of a good subset:</p>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Table 1 of the paper; \(s_{ij}\) is pairwise similarity. Mutual-information variants are also used.</caption>
+					<thead><tr><th>Arm \(f(X)\)</th><th>Definition</th><th>Favours</th></tr></thead>
+					<tbody>
+					<tr><td>Facility location</td><td>\(\sum_{i \in V} \max_{j \in X} s_{ij}\)</td><td>representative points</td></tr>
+					<tr><td>Graph cut</td><td>\(\sum_{i \in V, j \in X} s_{ij} - \rho \sum_{i,j \in X} s_{ij}\)</td><td>representative, tunably diverse</td></tr>
+					<tr><td>Log-determinant</td><td>\(\log\det(S_X)\)</td><td>diverse</td></tr>
+					<tr><td>Disparity-min</td><td>\(\min_{i \neq j \in X} (1 - s_{ij})\)</td><td>no two points too close</td></tr>
+					<tr><td>Disparity-sum</td><td>\(\sum_{i \neq j \in X} (1 - s_{ij})\)</td><td>spread-out points</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="Accuracy curves for different orderings of submodular functions" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> Order matters. On CIFAR-100, switching between diversity-based and representative selection, per step (left) or per epoch (right), changes the accuracy curve. That is why a fixed schedule is hard to choose in advance.</figcaption>
+			</figure>
+
+			<h2>Scoring an arm with the validation set</h2>
+			<p>At step \(t\) the model sees a batch \(B_t\) and must train on a subset of size \(\beta\). Each arm \(a\) is a monotone submodular function \(f^{(a)}\); greedy maximisation gives its subset \(S_a\) with the usual \((1 - 1/e)\) guarantee.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Utility: the drop in validation loss (Eq. 1)</span>
+				$$U_t(B, z^{\text{val}}) = \ell(z^{\text{val}}, \theta_t) - \ell\big(z^{\text{val}}, \tilde\theta_{t+1}(B)\big), \qquad \tilde\theta_{t+1}(B) = \theta_t - \eta_t \nabla_\theta \tfrac{1}{|B|}\textstyle\sum_{z \in B} \ell(z, \theta_t)$$
+				<p class="in-words"><strong>In words:</strong> how much better would the model do on a validation example after one SGD step on these training examples?</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Value of one more example (Eq. 4)</span>
+				$$\Delta U_t(z_i \mid B^{(&lt;i)}, z^{\text{val}}) \approx \eta_t \underbrace{g_{\theta_t}(z_i) \cdot g_{\theta_t}(z^{\text{val}})}_{\text{gradient influence}} \;-\; \eta_t^2 \underbrace{g_{\theta_t}(z_i)^{\top} H_{z^{\text{val}}} \Big(\tfrac{1}{|B^{(&lt;i)}|}\textstyle\sum_{z \in B^{(&lt;i)}} g_{\theta_t}(z)\Big)}_{\text{similarity to what's already chosen}}$$
+				<p class="in-words"><strong>In words:</strong> an example is valuable if its gradient points toward the validation gradient (term I), minus a penalty for overlapping with the examples already in the subset (term II). We use \(H \approx I\) for LLMs, and LoRA or last-layer gradients keep it cheap. Exhaustively maximising this over subsets would cost \(O\big(\binom{|B_t|}{\beta}\big)\), which is why each arm uses a submodular proxy instead.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Reward of an arm (Eq. 6)</span>
+				$$\vartheta(a \mid B_t) = \mathbb{E}_{z^{\text{val}} \in B^{\text{val}}_t,\; z_i \in S_a}\Big[\, \Delta U_t\big(z_i \mid S_a^{(&lt;i)}, z^{\text{val}}\big) \Big]$$
+				<p class="in-words"><strong>In words:</strong> the expected validation benefit per example of the subset this arm would pick. This is estimated <em>before</em> the update from gradients, so it is cheap and needs no extra training step.</p>
+			</div>
+
+			<figure class="blog-figure">
+				<img src="fig5.png" alt="Distribution of selected arms over epochs" loading="lazy">
+				<figcaption><strong>Figure 5 from the paper.</strong> Which arms the bandit actually picks over training on CIFAR-100, under four exploration schedules (&lambda;(t), &pi;(t)). The mix shifts during training, with diversity-based functions becoming more prominent.</figcaption>
+			</figure>
+
+			<ol class="blog-steps">
+				<li><strong>Receive batch.</strong> Compute per-example gradients (LoRA or last-layer).</li>
+				<li><strong>Score arms.</strong> For each submodular arm, estimate ϑ(a | B<sub>t</sub>) using a few validation points.</li>
+				<li><strong>Explore or exploit.</strong> Use the best arm, or occasionally a random one.</li>
+				<li><strong>Select &amp; train.</strong> Greedy-maximise the chosen f to get S<sub>t</sub>; take an SGD step on it.</li>
+			</ol>
+			<p class="blog-caveat">OnlineSubmod (Algorithm 1). The curriculum emerges from which arm wins at each stage, rather than being fixed in advance.</p>
+
+			<h2>The guarantee</h2>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Regret against the best arm in hindsight</span>
+				$$\mathrm{Regret}_T = \sum_{t=1}^{T} \Delta^{(a_t)}(B_t), \qquad \Delta^{(a)}(B_t) = \max\{0,\; \vartheta(a^{*}_t \mid B_t) - \vartheta(a \mid B_t)\}$$
+				<p class="in-words"><strong>In words:</strong> add up, over all steps, how much validation benefit was lost by not using the best selection rule for that batch.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">No-regret rate (Thm. 1)</span>
+				$$\mathbb{E}[\mathrm{Regret}_t] = O\!\left(\frac{1}{t}\right) + O\!\left( \frac{K^{3/2}\,(\max_a C^{(a)} + C^{*})}{\varrho}\sqrt{\frac{\log t}{t}} \right)$$
+				<p class="in-words"><strong>In words:</strong> with high probability, the per-step regret goes to zero. It decays faster with fewer arms \(K\), better utility approximations (smaller \(C\)) and a larger gap \(\varrho\) between the best arm and the rest. When arms are nearly tied, telling them apart is harder.</p>
+			</div>
+
+			<h2>What we measured</h2>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Table 1 of the paper; 50% of each batch selected, two validation points for the reward. OnlineSubmod matches or beats every baseline on each MMLU subject reported and on TyDiQA.</caption>
+					<thead><tr><th>Method</th><th>LLM fine-tuning (LESS data): average over MMLU subjects and TyDiQA</th></tr></thead>
+					<tbody>
+					<tr><td>MaxLoss</td><td>45.2%</td></tr>
+					<tr><td>SBERT</td><td>45.8%</td></tr>
+					<tr><td>GradNorm</td><td>46.4%</td></tr>
+					<tr><td>RhoLoss</td><td>46.4%</td></tr>
+					<tr><td>GREATS</td><td>47.8%</td></tr>
+					<tr class="is-ours"><td>OnlineSubmod</td><td>49.6%</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p>For vision (ResNet on CIFAR-10/100, TinyImageNet, MNIST and SVHN), the batch-wise variant gives the best or tied-best accuracy at every budget we tried. Its speed-up is close to MILO's, which relies on expensive offline pre-filtering. For example, on TinyImageNet with a 10% budget it reaches 0.553 accuracy at an 8.43&times; speed-up, against MILO's 0.532 at 8.62&times;.</p>
+			<p class="blog-caveat">The validation reward is part of the method, not free information. Its size, representativeness and evaluation cost matter. These experiments use a small validation signal on defined benchmarks; scaling the approach to large pretraining runs is future work.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

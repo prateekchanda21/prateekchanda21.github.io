@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of Interwhen, a single-trajectory test-time verification framework that steers reasoning models with policy verifiers.">
+	<title>Interwhen: Verifying Reasoning While It Happens | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/interwhen/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">When Should a Reasoning Model Check Its Work?</h1>
+				<div class="blog-meta"><strong>NeurIPS 2026</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2602.11202" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://github.com/microsoft/interwhen" target="_blank" rel="noopener noreferrer">Code</a>
+					<a href="https://www.microsoft.com/en-us/research/video/introducing-interwhen-steering-reasoning-agents-with-real-time-verification/" target="_blank" rel="noopener noreferrer">Talk</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>Checking only an agent's <em>final</em> answer misses the step where it went wrong: a skipped confirmation, a forbidden tool call, an illegal move.</li>
+					<li>Interwhen watches a single reasoning trace, periodically <em>forks</em> the model to pull out checkable state, and runs code verifiers on it in parallel. If a check fails, it rolls back to that point and feeds the violation back to the model.</li>
+					<li>Verifiers are synthesised from the natural-language policy, optionally in Lean with a proof that the code matches the spec. On &tau;&sup2;-bench telecom, Qwen3-30B goes from 32% to 87.7% task success at about the same token budget.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">Best-of-N sampling and tree search improve reasoning by generating <em>many</em> trajectories and picking the good one, which is expensive. Interwhen keeps <em>one</em> trajectory and steers it: verifiers run alongside generation and step in only when something is actually wrong.</p>
+
+			<h2>Setting up the problem</h2>
+			<p>A reasoning model produces a trace token by token. We split it into steps at cheap markers: blank lines, reflection tokens such as "But wait", or tool calls. We then ask whether every prefix of the trace respects the task's policy.</p>
+
+			<table class="blog-symbols" aria-label="Notation">
+				<tbody>
+					<tr><td>\(\tau = r_0 r_1 \cdots r_m\)</td><td>the reasoning trace, split into steps (a thought, a tool call, a reflection)</td></tr>
+					<tr><td>\(\tau_{\le k}\)</td><td>the partial trace up to step \(k\)</td></tr>
+					<tr><td>\(\pi_j\)</td><td>one rule from the policy \(\Pi = \{\pi_j\}\), e.g. "refunds go to the original payment method"</td></tr>
+					<tr><td>\(s(\cdot)\)</td><td>the state extractor: turns a partial trace into a dictionary of variables</td></tr>
+					<tr><td>\(v(\cdot)\)</td><td>a programmatic verifier for a rule, run on the extracted state</td></tr>
+				</tbody>
+			</table>
+
+			<div class="blog-math">
+				<span class="blog-math-label">A rule can say yes, no, or not yet (Def. 3.2)</span>
+				$$\pi : \mathcal{T}^{*} \to \{\,\mathsf{T},\ \mathsf{F},\ \mathsf{U}\,\}$$
+				<p class="in-words"><strong>In words:</strong> a rule looks at a partial trace and answers <em>satisfied</em>, <em>violated</em>, or <em>unknown</em>, because early in a trace there often isn't enough information yet.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">What "policy compliant" means (Def. 3.4)</span>
+				$$\pi_j(\tau_{\le k}) \neq \mathsf{F} \qquad \text{for every step } k \text{ and every rule } j$$
+				<p class="in-words"><strong>In words:</strong> no prefix of the trace may ever violate any rule. The goal is strict: either produce a provably compliant trace, or abstain and return no answer.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">What a verifier must do (Def. 4.2)</span>
+				$$v\big(s(\tau_{\le k})\big) = \pi(\tau_{\le k}) \qquad \text{for all partial traces}$$
+				<p class="in-words"><strong>In words:</strong> run the extractor, then the verifier, and you should get the same verdict as the rule itself. When the answer is \(\mathsf{F}\), the verifier also returns a text explanation that is fed back to the model.</p>
+			</div>
+
+			<h2>Online: extract, verify, intervene</h2>
+			<p>Free-form "thinking" is hard to check directly. The maze move or the order ID is buried in prose. So at each step boundary we <em>fork</em> the model with a separate prompt that asks it to report the state variables a verifier needs. Structured tool calls are parsed directly. The forked call never touches the main context.</p>
+
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="Interwhen offline and online phases" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> The two phases. Offline, an LLM turns the policy and task description into verifier code and a state-to-verifier map. Online, the stream of thinking and tool calls is checked step by step: a passing check lets generation continue, and a violation blocks the tool call and injects feedback.</figcaption>
+			</figure>
+
+			<p>Because checks run asynchronously, a trace that never violates anything finishes as fast as it would without monitoring. The one exception is a <em>write</em> tool call, such as cancelling an order, which waits for its check so it can be blocked before it executes.</p>
+			<figure class="blog-figure">
+				<img src="fig2.png" alt="Maze example comparing standard output, Tree of Thoughts and interwhen" loading="lazy">
+				<figcaption><strong>Figure 2 from the paper.</strong> (a) A Maze instance: count the right turns on the path from green to red. (b) Standard output, Tree of Thoughts and interwhen on the same task; interwhen steps in with textual feedback at the step where an illegal move appears.</figcaption>
+			</figure>
+
+
+			<h2>Offline: where do the verifiers come from?</h2>
+			<p>Outside math and code, ready-made verifiers are rare. Given the policy document, the task description and the tool list, a frontier LLM writes (1) a verifier function per rule and (2) a map from state patterns to verifiers. For example, a rule that "credit for a cancelled order must go back to the original payment source" becomes <code>check_refund_mode(order_id, payment_source, refund_target)</code>. It is triggered whenever the trace ends in a <code>cancel_order</code> call.</p>
+			<p>To trust that generated code, the formal variant writes a Lean specification of the rule, a Boolean implementation, and a proof that the two are equivalent. The verifier is accepted only if the proof checks. A human then needs to confirm only that the <em>specification</em> says what the policy means.</p>
+			<figure class="blog-figure">
+				<img src="fig3.png" alt="Lean specification, verifier and equivalence proof" loading="lazy">
+				<figcaption><strong>Figure 3 from the paper.</strong> Lean 4 formalisation of the retail rule "refunds must go to the original payment method or a gift card": (a) the specification, (b) the Boolean verifier, (c) the proof that they agree. The verifier is accepted only if the proof checks.</figcaption>
+			</figure>
+
+
+			<h2>When does steering help? A small Markov model</h2>
+			<p>State extraction is model-based, so it can be wrong. To see when verification still helps, model each step as either compliant or violated. On its own, the model breaks compliance with probability \(\delta\) per step and recovers unaided with probability \(\gamma\). The verifier catches a real violation with probability \(\beta\) and correctly passes a compliant state with probability \(\beta'\); after feedback, \(\phi_{\text{fix}}\) is the chance a violation gets repaired and \(\phi_{\text{safe}}\) the chance a false alarm leaves a compliant trace intact.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Transition probabilities with interwhen (Thm. 4.3)</span>
+				$$a_1 = \beta'(1-\delta) + (1-\beta')\,\phi_{\text{safe}}, \qquad b_1 = \beta\,\phi_{\text{fix}} + (1-\beta)\,\gamma$$
+				<p class="in-words"><strong>In words:</strong> a compliant step stays compliant if the verifier correctly lets it pass (\(\beta'\)), or if a false alarm's feedback doesn't break it (\(\phi_{\text{safe}}\)). A violated step recovers if the verifier catches it (\(\beta\)) and the feedback fixes it (\(\phi_{\text{fix}}\)), or if it recovers on its own (\(\gamma\)).</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Long-run compliance: when interwhen wins</span>
+				$$\underbrace{\frac{b_1}{b_1 + 1 - a_1}}_{\text{interwhen}} \;\ge\; \underbrace{\frac{\gamma}{\gamma + \delta}}_{\text{base}} \quad\Longleftrightarrow\quad \frac{\gamma}{\delta} \;\le\; \frac{b_1}{1-a_1}$$
+				<p class="in-words"><strong>In words:</strong> compare the odds of returning to compliance with the odds of leaving it. Verification wins in the long run when it improves that ratio. If the base model can never recover on its own (\(\gamma = 0\)), interwhen is better at every horizon. Theorem 4.4 adds that, if false alarms are harmless and feedback repairs violations at least as often as the model recovers unaided, interwhen is at least as good at <em>every</em> finite horizon.</p>
+			</div>
+
+			<h2>What happens in the experiments?</h2>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Adding verifiers built from the policy, then from a few failing traces, then a task-completeness check. The best variant uses 96.93% of the chain-of-thought token budget.</caption>
+					<thead><tr><th>Method</th><th>τ²-bench telecom, Qwen3-30B-A3B-Thinking, solo mode (Pass^4, %)</th></tr></thead>
+					<tbody>
+					<tr><td>Chain-of-thought</td><td>32.17%</td></tr>
+					<tr><td>IW (policy)</td><td>42.11%</td></tr>
+					<tr><td>IW (policy + trace)</td><td>71.10%</td></tr>
+					<tr class="is-ours"><td>IW (policy + trace + prompt)</td><td>87.70%</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>The same generated verifiers transfer across model families without model-specific changes (Table 2 of the paper).</caption>
+					<thead><tr><th>Setting</th><th>Baseline (CoT)</th><th>With interwhen</th></tr></thead>
+					<tbody>
+					<tr><td>τ²-bench telecom · Claude Haiku 4.5 (Pass^4)</td><td>20.2%</td><td>65.8%</td></tr>
+					<tr><td>τ²-bench telecom · GPT-5.4 Mini (Pass^4)</td><td>47.4%</td><td>82.5%</td></tr>
+					<tr><td>AgentSafetyBench (safety score)</td><td>48.75%</td><td>72.31%</td></tr>
+					<tr><td>VitaBench OTA · Claude Haiku 4.5 (reward)</td><td>17.0%</td><td>23.0%</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p>On non-agentic reasoning benchmarks whose policies encode mathematical or logical constraints, interwhen-based steering reaches near-perfect accuracy for reasoning models. It uses a fraction of the tokens that test-time verification baselines need.</p>
+
+			<div class="blog-callout">
+				<p><strong>What it does not guarantee.</strong> A Lean proof shows that the verifier matches its <em>specification</em>. It cannot show that the specification captures what the policy author meant, or that the forked extractor read the right state from free text. Policies can also be incomplete: on &tau;&sup2;-bench, looking at a handful of traces revealed that "at most 2GB" really meant "exactly 2GB". Vague policies can lead to over-cautious verifiers that block legitimate tool calls.</p>
+			</div>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

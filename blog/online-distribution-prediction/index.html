@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of online distributional prediction with latent cluster geometry, Gibbs quasi-posteriors and localized memory under drift and corruption.">
+	<title>Online Distributional Prediction Under Drift and Corruption | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/online-distribution-prediction/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Predicting a Distribution That Keeps Moving</h1>
+				<div class="blog-meta"><strong>Transactions on Machine Learning Research, 2026</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2606.18778" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://openreview.net/forum?id=DlL73vEtwX" target="_blank" rel="noopener noreferrer">OpenReview</a>
+					<a href="https://github.com/efficiency-learning/quasi_bayesian_time_series_estimation" target="_blank" rel="noopener noreferrer">Code</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>We want to forecast the whole <em>distribution</em> of the next observation, not only its mean, when the stream drifts over time and an adversary can corrupt some observations.</li>
+					<li>Each candidate explanation of the data is a set of cluster centres (any number of them). A Gibbs quasi-posterior weights these configurations by how well they fit, and the forecast averages their implied distributions.</li>
+					<li>Restarting, windowing or discounting the history stops stale data from dominating. The regret bound, in Wasserstein distance, separates the cost of model complexity, corruption and drift.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">A forecast of the mean can be useful, but it cannot tell you whether the data is tightly clustered, split across several modes, or changing shape. This paper asks how to predict the distribution itself, online, when the stream can drift and some observations are corrupted.</p>
+
+			<h2>The setting</h2>
+
+			<div class="blog-math">
+				<span class="blog-math-label">What the learner sees</span>
+				$$\tilde{x}_t = x_t + C_t, \qquad x_t \sim P_t, \qquad \|\tilde{x}_t - x_t\|_2 \le \delta, \qquad \Lambda_T = \sum_{t=1}^{T} \mathbf{1}\{C_t \neq 0\}$$
+				<p class="in-words"><strong>In words:</strong> at each round a clean point is drawn from the <em>current</em> law \(P_t\), which may change over time, but we only see a possibly corrupted copy. Corruption is bounded in size by \(\delta\), \(\Lambda_T\) counts how many rounds were corrupted, and the adversary can depend on the past but not the future.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">How we keep score: Wasserstein regret</span>
+				$$\mathrm{Regret}(T) = \sum_{t=1}^{T} W_1\!\big(\,p(x_t \mid \tilde{x}_{1:t-1}),\; P_t\,\big), \qquad \big\|\mathbb{E}_P[X] - \mathbb{E}_Q[X]\big\| \le W_1(P, Q)$$
+				<p class="in-words"><strong>In words:</strong> at every step, measure how much probability mass must be moved to turn our forecast into the true distribution, and add these costs up. Because \(W_1\) upper-bounds the error in the mean, controlling it controls the mean forecast too, but not the other way round.</p>
+			</div>
+
+			<h2>Explaining the data with cluster centres</h2>
+			<p>Instead of fitting one parametric family, we put a distribution over <em>configurations</em> \(c = (c_1,\dots,c_k)\): sets of centres of any size \(k\). Each configuration is one hypothesis about how the probability mass is laid out, and each induces a predictive law.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Loss and the law a configuration implies</span>
+				$$\ell(c, x) = \min_{j} \|c_j - x\|_2^2, \qquad p(\cdot \mid c) = \frac{1}{k}\sum_{j=1}^{k} K(\cdot,\, c_j)$$
+				<p class="in-words"><strong>In words:</strong> a configuration fits a point well if some centre is close to it. Its forecast places an equal-weight kernel bump (for example a Gaussian of fixed bandwidth) on each centre.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Prior over how many clusters, and where</span>
+				$$\pi(c) = \sum_{k=1}^{p_{\max}} q(k)\,\mathbf{1}\{c \in \mathcal{C}_k\}\,\pi_k(c), \qquad q(k) \propto e^{-\eta k}$$
+				<p class="in-words"><strong>In words:</strong> the number of clusters is itself uncertain, and simpler explanations with fewer centres get more prior mass.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Gibbs quasi-posterior (Eq. 20 / 22)</span>
+				$$\hat{\rho}_{t+1}(dc) \;\propto\; \exp\!\big(-\lambda_t\, S_t(c)\big)\,\pi(dc), \qquad S_t(c) = S_{t-1}(c) + \ell(c, z_t)$$
+				<p class="in-words"><strong>In words:</strong> this works like Bayes' rule, but the likelihood is replaced by the exponentiated clustering loss accumulated so far. Configurations that have fit the stream well get exponentially more weight; \(\lambda_t\) sets how sharply.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">The forecast (Eq. 21 / 25)</span>
+				$$\hat{p}_{t+1}(\cdot) = \int_{\mathcal{C}} p(\cdot \mid c)\,\hat{\rho}_{t+1}(dc) \;\approx\; \frac{1}{M}\sum_{m=1}^{M} p\big(\cdot \mid c^{(m)}\big)$$
+				<p class="in-words"><strong>In words:</strong> average the forecasts of all configurations, weighted by the quasi-posterior. In practice we draw \(M\) configurations with reversible-jump MCMC, using birth, death and move proposals so that \(k\) can change, and average their kernel mixtures.</p>
+			</div>
+
+			<h2>Forgetting on purpose</h2>
+			<p>Drift and corruption make old data misleading for different reasons. A corrupted point distorts the score directly. Under drift, even clean points from long ago describe a distribution that no longer holds. All four variants share the same model, prior and loss. They differ only in which past losses enter the score \(S_t\):</p>
+
+			<figure class="blog-figure">
+				<img src="fig3.png" alt="Cumulative and average regret for four memory rules" loading="lazy">
+				<figcaption><strong>Figure 3 from the paper.</strong> Within-stream regret at T = 4000 in the drifting, corrupted setting, averaged over ten paired seeds: (a) cumulative Wasserstein regret, (b) average regret. Once the distribution drifts, full history keeps accumulating error; restart, sliding-window and discounted memory stay low.</figcaption>
+			</figure>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Windowed and discounted scores</span>
+				$$S^{\text{sw}}_{t-1}(c) = \sum_{s=\max(1,\,t-H)}^{t-1} \ell(c, z_s), \qquad S^{\text{dc}}_{t-1}(c) = \sum_{s=1}^{t-1} \rho^{\,t-1-s}\,\ell(c, z_s), \quad \rho = e^{-1/H}$$
+				<p class="in-words"><strong>In words:</strong> \(H\) is the effective memory length. Choosing \(\rho = e^{-1/H}\) makes the discounted variant remember roughly as far back as a window of length \(H\).</p>
+			</div>
+
+			<h2>What the guarantee says</h2>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Splitting the error into corruption and tracking</span>
+				$$W_1\big(p(\cdot \mid \tilde{x}_{1:t-1}), P_t\big) \;\le\; \underbrace{W_1\big(p(\cdot \mid \tilde{x}_{1:t-1}),\, p(\cdot \mid x_{1:t-1})\big)}_{\text{damage from corruption}} \;+\; \underbrace{W_1\big(p(\cdot \mid x_{1:t-1}),\, P_t\big)}_{\text{tracking a moving target}}$$
+				<p class="in-words"><strong>In words:</strong> how far the corrupted forecast is from the clean-data forecast, plus how far the clean-data forecast is from the truth. Each term is bounded separately.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">How much the world moves</span>
+				$$A^{\text{OT}}_T = \sum_{t=2}^{T} W_2^2\big(P_{t-1},\, P_t\big)$$
+				<p class="in-words"><strong>In words:</strong> the total squared transport distance the true distribution travels over the horizon. A small value means gradual drift; a large value means abrupt or persistent change.</p>
+			</div>
+
+			<p>The final bound for the restarted predictor adds three kinds of terms. The first is a complexity term from the PAC-Bayes argument, of the form \(\mathrm{KL}/\lambda\), paid once per restart segment. The second is a corruption term that grows with the number of corruptions <em>inside</em> each segment. The third is a drift term driven by \(A^{\text{OT}}_T\), plus a charge for changes in the best number of clusters. Short segments limit how much stale or corrupted data can accumulate, but pay the complexity cost more often. The restart length is the knob that trades these off.</p>
+
+			<div class="blog-callout">
+				<p><strong>The guarantee has conditions.</strong> It assumes bounded support and regularity of the latent cluster representation, and the restart schedule must be tuned using bounds on drift and corruption. A sublinear total number of corruptions alone is not enough; the theory needs a suitable bound within each segment. The kernel bandwidth and equal weights are fixed, so the residual mismatch of that family is tracked as a separate approximation term.</p>
+			</div>
+
+			<h2>What the experiments do, and do not, show</h2>
+			<p>A factorial design on controlled streams varies drift, corruption level, horizon and learning-rate schedule, and compares full-history, restart, sliding-window and discounted updates. Shortening memory helps when the underlying law keeps moving. These finite-horizon experiments illustrate the mechanism; they are not a substitute for the asymptotic theorem, which depends on the assumptions above.</p>
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="Regret scaling with horizon for four memory rules" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> Regret under non-repeating distribution shifts as the horizon grows. (a) Cumulative regret on log&ndash;log axes with fitted power-law exponents: full history grows almost linearly (&alpha;&#770; = 1.16), while restart and sliding window grow sub-linearly (&alpha;&#770; = 0.83 and 0.84). (b) Normalised regret R<sub>T</sub>/T.</figcaption>
+			</figure>
+
+			<p>This is a framework for distributional prediction, not a claim that one clustering model fits every stream. Its practical value depends on whether the latent geometry can represent the distributions of interest, and whether the memory schedule matches how fast they change.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

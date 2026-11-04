@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of PartitionSel, partition-matroid constrained gradient matching for domain-aware minibatch selection in language models.">
+	<title>PartitionSel: Minibatch Selection Across Data Domains | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/partitioned-minibatches/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Choosing a Minibatch Across Data Domains</h1>
+				<div class="blog-meta"><strong>ICML 2026</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2606.07954" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://github.com/efficiency-learning/PartitionSEL" target="_blank" rel="noopener noreferrer">Code</a>
+					<a href="https://icml.cc/media/icml-2026/Slides/64010.pdf" target="_blank" rel="noopener noreferrer">Slides</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>When a minibatch mixes several domains (math, code, chemistry, &hellip;), you want it to cover each domain <em>and</em> to avoid spending the budget on examples whose gradients all point the same way.</li>
+					<li>PartitionSel scores a candidate set by how much one SGD step on it would reduce validation loss, and enforces per-domain budgets with a <em>partition matroid</em> constraint.</li>
+					<li>We add non-negative weights to the objective, which makes it monotone and weakly submodular, so greedy OMP selection has an approximation guarantee. Choosing jointly across domains beats choosing inside each domain separately.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">A training batch assembled from several domains has two jobs: include enough examples from each domain, and avoid wasting budget on examples that all push the model in the same direction, or in opposite directions. PartitionSel does both in a single selection problem.</p>
+
+			<h2>The problem: a budget per domain, one objective for all</h2>
+			<p>At step \(t\) we receive a candidate batch \(B_t = B^1_t \uplus \dots \uplus B^C_t\) split by domain, plus a small validation batch. We want a subset \(S\) of size \(\kappa\) to train on.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Domain-aware batch selection (Eq. 1)</span>
+				$$\max_{S \subseteq B_t}\; U_t(S) \quad \text{s.t.} \quad |S \cap B^c_t| \le \kappa_c \;\; \forall c, \qquad \sum_{c=1}^{C} \kappa_c = \kappa$$
+				<p class="in-words"><strong>In words:</strong> maximise one shared utility, while taking at most \(\kappa_c\) examples from domain \(c\). This kind of per-block cap is exactly a <em>partition matroid</em>. By default the caps are proportional to each domain's share of the batch, \(\kappa_c = \lfloor \kappa |B^c_t| / |B_t| \rceil\).</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">The utility: how much does validation loss drop?</span>
+				$$U_t(S) = \ell\big(z^{\text{val}};\, \theta_t\big) \;-\; \ell\Big(z^{\text{val}};\; \theta_t - \eta_t \sum_{z \in S} g_{\theta_t}(z)\Big)$$
+				<p class="in-words"><strong>In words:</strong> imagine taking one gradient step on \(S\) and measure how much the validation loss falls. Bigger is better.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Marginal gain of adding one example (Eq. 2)</span>
+				$$\Delta U_t(z_i \mid S) \;\approx\; \eta_t \underbrace{\big\langle g_{\theta_t}(z_i),\, g_{\theta_t}(z^{\text{val}}) \big\rangle}_{\text{alignment with validation}} \;-\; \eta_t^2 \underbrace{\Big\langle g_{\theta_t}(z_i),\, H_{z^{\text{val}}} \textstyle\sum_{z \in S} g_{\theta_t}(z) \Big\rangle}_{\text{redundancy with what's already chosen}}$$
+				<p class="in-words"><strong>In words:</strong> two Taylor expansions show that a new example is worth adding if its gradient points toward the validation gradient (first term) <em>and</em> doesn't merely repeat gradients already in the batch (second term, Hessian-weighted).</p>
+			</div>
+
+			<h2>Making greedy selection safe: add weights</h2>
+			<p>A natural greedy rule uses Eq. 2 with \(H \approx I\); this is the GREATS heuristic. Its marginal gain can be <em>negative</em>: a candidate roughly orthogonal to validation but similar to the batch makes the objective go down, so the problem is not monotone and greedy has no guarantee. We fix this by letting each selected example carry a learned non-negative weight:</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Weighted set utility (Eqs. 5–6)</span>
+				$$f(S) = \max_{\substack{w \ge 0\\ \mathrm{supp}(w) \subseteq S}} \;\langle w, \mu \rangle - \frac{\eta_t}{2}\, w^{\top} K w, \qquad K = G G^{\top}, \quad \mu = G\,\bar{g}^{\text{val}} + \frac{\eta_t}{2}\,\mathrm{diag}(K)$$
+				<p class="in-words"><strong>In words:</strong> \(G\) stacks the per-example gradients, \(K\) holds their pairwise similarities, and \(\bar g^{\text{val}}\) is the average validation gradient. For a fixed support the inner problem is a concave quadratic, easy to solve exactly. Adding an example can only enlarge the feasible set, so \(f\) never decreases. If the weights are forced to be 0 or 1, the marginal gain is exactly GREATS (Remark 4.1).</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Approximation guarantee (Thm. 5.5)</span>
+				$$\mathbb{E}\big[f(\hat S_t)\big] \;\ge\; \Big(1 + \tfrac{\tilde C_1}{c_{2\kappa}}\Big)^{-2}\, f(S^{*})$$
+				<p class="in-words"><strong>In words:</strong> \(f\) is monotone and \(\gamma\)-weakly submodular because \(K\) is positive definite (per-example LLM gradients are very high-dimensional). So randomised OMP under the partition matroid gets within a constant factor of the best feasible batch. The constant depends on the restricted smoothness \(\tilde C_1\) and the restricted strong concavity \(c_{2\kappa}\) of the quadratic, and is independent of the learning rate.</p>
+			</div>
+
+			<ol class="blog-steps">
+				<li><strong>Pool candidates.</strong> Gather the batch and per-example gradient features from all domains.</li>
+				<li><strong>Build the matroid.</strong> Set per-domain caps κ<sub>c</sub>, by default proportional to domain size.</li>
+				<li><strong>OMP, κ rounds.</strong> Add the feasible example with the most positive gradient mass, then refit weights w.</li>
+				<li><strong>Train.</strong> Update the model on the selected, balanced, less redundant subset.</li>
+			</ol>
+			<p class="blog-caveat">Each OMP round samples from a maximal independent set of the contracted matroid, which guarantees the caps are never exceeded. The weights are refit by accelerated projected gradient ascent.</p>
+
+			<h2>Why not just select inside each domain?</h2>
+			<p>Independent domain-wise selection (ID) satisfies every quota, but each domain's choice ignores what the other domains contributed. The batch can end up full of near-duplicate gradients, or of gradients that cancel each other out. With a single shared objective, one domain's pick changes the value of another domain's candidates.</p>
+
+			<figure class="blog-figure">
+				<img src="fig3.png" alt="Gradient conflicts over training steps for ID and PartitionSel" loading="lazy">
+				<figcaption><strong>Figure 3 from the paper.</strong> Conflicting gradient pairs (those with \(\langle g_i, g_j\rangle \lt 0\)) in the selected batch over training. Selecting inside each domain independently (ID) keeps picking far more conflicting pairs than PartitionSel.</figcaption>
+			</figure>
+
+			<p>The paper measures this directly. Over training, PartitionSel's batches contain markedly fewer conflicting gradient pairs, those with \(\langle g_i, g_j\rangle \lt 0\), than ID's. The induced per-step domain proportions \(|\hat S_t \cap V_c| / |\hat S_t|\) also act as a sample-level stand-in for learned domain weights such as DoReMi, without training a proxy model.</p>
+
+			<h2>Results</h2>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Table 1 of the paper: average accuracy over NumGLUE, MMLU-Math, GSM8K, SVAMP, SimulEq, DeepMind, AQuA and SAT. The axis starts at 0.58 so the differences are visible. Per-benchmark winners vary; the gain shows up in the average.</caption>
+					<thead><tr><th>Method</th><th>Qwen2.5-3B on MetaMathQA, 50% selected: average over 8 math benchmarks</th></tr></thead>
+					<tbody>
+					<tr><td>Random</td><td>0.6014</td></tr>
+					<tr><td>GradNorm</td><td>0.6105</td></tr>
+					<tr><td>COLM</td><td>0.6119</td></tr>
+					<tr><td>IWD</td><td>0.6225</td></tr>
+					<tr><td>GREATS</td><td>0.6240</td></tr>
+					<tr><td>ID (independent)</td><td>0.6263</td></tr>
+					<tr class="is-ours"><td>PartitionSel</td><td>0.6363</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="Validation log-perplexity curves" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> Left: validation log-perplexity on MetaMathQA for PartitionSel, COLM, ID and GREATS. Right: PartitionSel against DoReMi's learned domain mixture.</figcaption>
+			</figure>
+<p>We also fine-tune Llama-3 and run molecule-generation experiments on Mol-Instructions. There PartitionSel improves the reported BLEU and edit-distance results across reaction and retrosynthesis tasks. Ablations cover the randomised-FFT gradient features, the number of layers used for gradients, and different base models.</p>
+			<p class="blog-caveat">These are benchmark results, not a promise that every domain's score rises on every task. The useful point is narrower: when a batch must cover multiple domains, choosing its examples together beats choosing them one domain at a time.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

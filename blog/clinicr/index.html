@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of ClinicR and MedQA-Open: incremental chain-of-thought prompting and forward-backward verification for open-ended medical question answering.">
+	<title>ClinicR: Open-Ended Medical Question Answering | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/clinicr/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Open-Ended Medical Questions Need More Than Answer Choices</h1>
+				<div class="blog-meta"><strong>Findings of EMNLP 2024</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://aclanthology.org/2024.findings-emnlp.31/" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://github.com/ColdSeal/ClinicR" target="_blank" rel="noopener noreferrer">Code and prompts</a>
+					<a href="https://docs.google.com/presentation/d/1WOUox1G1jRFJioB7gptM2T8Axk-p7Prkfcw6iInlyqw/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Slides</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>Medical QA benchmarks usually hand the model four options. Real patients don't come with options, so we built <strong>MedQA-Open</strong>: MedQA-USMLE questions rewritten to be open-ended, with clinician-approved reasoned answers.</li>
+					<li><strong>ClinicR</strong> is a 5-shot chain-of-thought prompt, written with medical professionals, that reasons <em>forward</em> from the patient history and updates a differential diagnosis step by step.</li>
+					<li>A <strong>forward-backward</strong> pipeline samples several ClinicR answers, then narrows them with an eliminative prompt or a trained verifier. With Llama-2-7B, expert agreement on open questions rises from 56% (eliminative prompt) to 83% (ClinicR) and 87% (ClinicR + verifier).</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">A multiple-choice medical question gives the model a list of possible answers. Real clinical questions do not. That difference makes it hard to tell whether a model can reason from a patient history, or is just good at choosing among the options it was handed.</p>
+
+			<h2>Two ways to reason about a case</h2>
+			<p>The standard few-shot chain-of-thought prompt for MedQA (Liévin et al., 2022) is <em>eliminative</em>. It copies the relevant history, then walks through options (A), (B), (C), &hellip;, accepting or rejecting each until one fits. That works when options exist. With an open question there is nothing to walk through. Clinicians instead build a differential diagnosis: take a finding, add or drop candidate diagnoses, take the next finding, and repeat until labs and context point to an answer.</p>
+
+			<figure class="blog-figure">
+				<img src="fig2.png" alt="Eliminative versus ClinicR reasoning" loading="lazy">
+				<figcaption><strong>Figure 2 from the paper.</strong> MCQ-Eliminative iterates over the options, accepting or discarding each, while the forward MCQ-ClinicR prompt reasons from the patient's symptoms and context, the way a clinician would.</figcaption>
+			</figure>
+
+			<h2>The pipeline, written as notation</h2>
+			<p>The paper describes these steps in prose; the notation below is a compact summary. Let \(q\) be an open-ended question.</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Forward step: generate a differential</span>
+				$$o^{(1)}, \dots, o^{(10)} \sim p_{\text{LLM}}\big(\cdot \mid \text{ClinicR}, q\big), \qquad \mathcal{O}_q = \operatorname{top-4}_{\text{likelihood}}\Big(\operatorname{dedupe}\big(\{o^{(n)}\}\big)\Big)$$
+				<p class="in-words"><strong>In words:</strong> sample several complete answers with the ClinicR prompt, drop near-duplicates by lexical overlap, and keep the four the model finds most likely. The open question has become a four-option question whose options the model wrote.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Backward step (verifier version): pick the best candidate</span>
+				$$\hat a = \arg\max_{o \in \mathcal{O}_q} \; V_\phi\big(q,\; r_o,\; o\big)$$
+				<p class="in-words"><strong>In words:</strong> a reward model \(V_\phi\) scores each candidate answer \(o\) together with its reasoning \(r_o\), and the highest-scoring one is returned. The alternative backward step feeds the four options to the MCQ-Eliminative prompt instead.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">How the verifier is trained</span>
+				$$\big(q_i,\; r^{j}_i,\; o^{j}_i\big) \;\mapsto\; y^{j}_i = \mathbf{1}\big[o^{j}_i \text{ is the correct option}\big], \qquad j = 1,\dots,4$$
+				<p class="in-words"><strong>In words:</strong> from each original MedQA multiple-choice question we make four training examples, one per option, labelled 1 if correct and 0 otherwise. Each is paired with a generated rationale for that option (about 97% correct on a 50-sample spot check). Llama-2-7B/70B-chat with a linear head is LoRA-trained on a reward-modelling loss.</p>
+			</div>
+
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="Overview of the prompting strategies" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> The two prompting strategies, Eliminative and ClinicR, each in a multiple-choice version (MedQA-MCQ) and an open-ended version (MedQA-Open).</figcaption>
+			</figure>
+
+			<h2>What the experiments show</h2>
+			<p>First, a sanity check: when options <em>are</em> given, ClinicR doesn't help. On the 1,273-question MedQA-MCQ test set, MCQ-ClinicR and MCQ-Eliminative are essentially tied (40.6% vs 41% with Llama-2-7B; 50% vs 52% with 70B). Incremental reasoning matters when the options are taken away.</p>
+			<p>For open-ended answers there is no exact-match metric, so eight final-year medical students rated each answer's reasoning and conclusion as Agree, Neutral or Disagree. They rated 500 MedQA-Open questions and 25 real cases contributed by practising clinicians (ClinicianCases).</p>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Figures 7–8 of the paper. The gap is largest for the smaller model: without options to anchor it, the eliminative prompt struggles to draw on what the 7B model knows. At 70B every method does well.</caption>
+					<thead><tr><th>Method</th><th>MedQA-Open: share of answers medical experts agreed with (%)</th></tr></thead>
+					<tbody>
+					<tr><td colspan="2"><em>Llama-2-7B-chat</em></td></tr>
+					<tr><td>Eliminative</td><td>56%</td></tr>
+					<tr><td>ClinicR</td><td>83%</td></tr>
+					<tr><td>ClinicR → MCQ-Eliminative</td><td>81%</td></tr>
+					<tr class="is-ours"><td>ClinicR → Verifier</td><td>87%</td></tr>
+					<tr><td colspan="2"><em>Llama-2-70B-chat</em></td></tr>
+					<tr><td>Eliminative</td><td>84%</td></tr>
+					<tr><td>ClinicR</td><td>87%</td></tr>
+					<tr><td>ClinicR → MCQ-Eliminative</td><td>87%</td></tr>
+					<tr class="is-ours"><td>ClinicR → Verifier</td><td>87%</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Expert agreement on clinician-contributed cases (Figures 9–10). With only 25 cases all methods score highly and the differences are small.</caption>
+					<thead><tr><th>ClinicianCases (25 real cases)</th><th>Llama-2-7B</th><th>Llama-2-70B</th></tr></thead>
+					<tbody>
+					<tr><td>Eliminative</td><td>90%</td><td>86%</td></tr>
+					<tr><td>ClinicR</td><td>88%</td><td>82%</td></tr>
+					<tr><td>ClinicR → MCQ-Eliminative</td><td>88%</td><td>84%</td></tr>
+					<tr><td>ClinicR → Verifier</td><td>90%</td><td>82%</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p>Why would options <em>hurt</em>? MCQ distractors are designed to mislead medical students, and they can mislead models too, by confining reasoning to the listed choices. An open question lets the model consider the full range of possibilities from the history, which is closer to how diagnosis actually works.</p>
+
+			<div class="blog-callout">
+				<p><strong>Scope.</strong> This is a research result on question-answering benchmarks, evaluated with expert ratings on a 3-point scale. It is not clinical validation, and generated reasoning should not be used as medical advice or as a substitute for a clinician.</p>
+			</div>
+			<p>Future directions include testing other open models and grounding answers in non-parametric knowledge such as retrieval or medical knowledge graphs, to widen what the model knows and make it more confident.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>

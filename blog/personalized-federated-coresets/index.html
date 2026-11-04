@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="A research overview of CoreSet-PFedBayes: client-specific Bayesian coresets for personalized federated learning, with posterior-matching coreset weights.">
+	<title>Bayesian Coreset Optimization for Personalized Federated Learning | Prateek Chanda</title>
+	<link rel="canonical" href="https://prateekchanda21.github.io/blog/personalized-federated-coresets/">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500" rel="stylesheet">
+	<link rel="stylesheet" href="../../css/normalize.css">
+	<link rel="stylesheet" href="../../css/main.css">
+	<link rel="stylesheet" href="../../css/blog.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+</head>
+<body>
+	<main class="blog-page">
+		<a class="blog-back" href="../../#publications">&larr; Publications</a>
+
+		<article>
+			<header>
+				<h1 class="blog-title">Can Each Federated Client Train on Fewer Examples?</h1>
+				<div class="blog-meta"><strong>ICLR 2024</strong> &middot; November 3, 2026</div>
+				<nav class="blog-resources" aria-label="Paper resources">
+					<a href="https://arxiv.org/abs/2511.01800" target="_blank" rel="noopener noreferrer">Paper</a>
+					<a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank" rel="noopener noreferrer">OpenReview</a>
+					<a href="https://github.com/prateekiiest/coresetFedML" target="_blank" rel="noopener noreferrer">Code</a>
+					<a href="https://iclr.cc/virtual/2024/poster/17557" target="_blank" rel="noopener noreferrer">ICLR poster</a>
+				</nav>
+			</header>
+
+			<div class="blog-tldr">
+				<strong>The short version</strong>
+				<ul>
+					<li>In federated learning each client trains on its own private data, and that data can be large and very different from other clients' (non-IID).</li>
+					<li>CoreSet-PFedBayes lets every client train its <em>personalised Bayesian</em> model on a small, weighted subset of its data: a coreset chosen specifically for that client.</li>
+					<li>The coreset weights are chosen so the client's posterior on the coreset stays close (in KL) to its posterior on the full data, and the weighted likelihood stays close to the full likelihood. Generalisation error stays minimax-optimal up to log factors in the coreset size.</li>
+				</ul>
+			</div>
+
+			<p class="blog-lede">In federated learning, clients keep their data locally and only send model updates to a server. A client may hold far more examples than it needs for a useful update, and its data may look very different from everyone else's. Can each client train on a carefully chosen fraction of its data without losing much?</p>
+
+			<h2>Starting point: personalised Bayesian FL</h2>
+			<p>We build on PFedBayes. Each of \(N\) clients learns its own distribution \(q_i(\theta)\) over network weights, a Gaussian per weight, and the server learns a global distribution \(z(\theta)\) that ties the clients together.</p>
+
+			<table class="blog-symbols" aria-label="Notation">
+				<tbody>
+					<tr><td>\(D_i\)</td><td>client \(i\)'s local dataset (\(n\) examples); it never leaves the client</td></tr>
+					<tr><td>\(q_i(\theta)\)</td><td>client \(i\)'s personalised posterior over network weights</td></tr>
+					<tr><td>\(z(\theta)\)</td><td>the server's global distribution</td></tr>
+					<tr><td>\(w_i \in \mathbb{R}^n\)</td><td>coreset weights for client \(i\), with at most \(n_k\) non-zeros</td></tr>
+					<tr><td>\(P_{\theta, w_i}(D_i)\)</td><td>the likelihood of client \(i\)'s data, with each example's term weighted by \(w_i\)</td></tr>
+				</tbody>
+			</table>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Client objective with coreset weights (Eq. 5)</span>
+				$$F^{w}_i(z) = \min_{q_i \in \mathcal{Q}_i} \Big[ -\mathbb{E}_{q_i(\theta)} \log P_{\theta, w_i}(D_i) \;+\; \zeta\, \mathrm{KL}\big(q_i(\theta) \,\|\, z(\theta)\big) \Big]$$
+				<p class="in-words"><strong>In words:</strong> fit the client's (weighted) data well, but don't drift too far from the global model. \(\zeta\) controls how personalised each client is allowed to be. With all weights equal to 1, this is the original PFedBayes client objective.</p>
+			</div>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Server objective (Eq. 2)</span>
+				$$\min_{z(\theta) \in \mathcal{Q}_z} \; F(z) = \frac{1}{N} \sum_{i=1}^{N} F^{w}_i(z)$$
+				<p class="in-words"><strong>In words:</strong> the global distribution is the one that, on average, best supports every client's personalised fit.</p>
+			</div>
+
+			<figure class="blog-figure">
+				<img src="fig1.png" alt="CoreSet-PFedBayes system diagram" loading="lazy">
+				<figcaption><strong>Figure 1 from the paper.</strong> System diagram. Each client i trains a Gaussian personalised posterior on its coreset-weighted data w<sub>i</sub>D<sup>i</sup>; the server keeps a global Gaussian family. The optimal weights w* come from comparing the coreset-weighted client objective with the full-data one.</figcaption>
+			</figure>
+
+			<h2>Choosing the coreset: match the posterior, not just the data</h2>
+			<p>Classic Bayesian coresets pick sparse weights so that the weighted log-likelihood matches the full one:</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Standard Bayesian coreset (Eq. 3)</span>
+				$$\min_{w_i} \big\| P_\theta(D_i) - P_{\theta, w_i}(D_i) \big\|^2_{\hat\pi, 2} \quad \text{s.t.} \quad \|w_i\|_0 \le n_k$$
+				<p class="in-words"><strong>In words:</strong> find at most \(n_k\) weighted examples whose combined likelihood behaves like the whole dataset's, measured in a weighted \(L_2\) sense over plausible parameters.</p>
+			</div>
+
+			<p>In federated learning what we actually care about is the model the client ends up with. So we also ask that the client's <em>optimal posterior</em> on the coreset stays close to the one it would get from all its data, for the same global \(z\):</p>
+
+			<div class="blog-math">
+				<span class="blog-math-label">CoreSet-PFedBayes coreset objective (Eq. 8)</span>
+				$$w_i^{*} = \arg\min_{\|w\|_0 \le n_k} \; \underbrace{\mathrm{KL}\big(\hat q_i(\theta; w) \,\|\, \hat q_i(\theta)\big)}_{\text{same personalised model}} \;+\; \underbrace{\big\| P_\theta(D_i) - P_{\theta, w}(D_i) \big\|^2_{\hat\pi, 2}}_{\text{same likelihood}}$$
+				<p class="in-words"><strong>In words:</strong> \(\hat q_i(\theta)\) is the client's best posterior on its full data and \(\hat q_i(\theta; w)\) the best posterior on the weighted coreset. Choose the sparse weights that keep these two close while also matching the data likelihood. Both terms have closed or Monte-Carlo forms, because the posteriors are Gaussian.</p>
+			</div>
+
+			<figure class="blog-figure">
+				<img src="fig3.png" alt="KL divergence over epochs" loading="lazy">
+				<figcaption><strong>Figure 3 from the paper.</strong> KL divergence between the coreset-weighted and full-data client posteriors over training on MNIST. (a) It quickly falls to near zero. (b) An optimised coreset converges much faster than a random 50% subset.</figcaption>
+			</figure>
+
+			<p>Eq. 8 is a sparse, non-convex problem. We solve it with <strong>accelerated iterative hard thresholding (A-IHT)</strong>: take a gradient step on the weights, keep only the \(n_k\) largest, and repeat with momentum. Choosing the support and its weights together means an example's influence is learned, not fixed by how often it appears.</p>
+
+			<ol class="blog-steps">
+				<li><strong>Coreset update.</strong> Each client runs A-IHT on Eq. 8 to get sparse weights w<sub>i</sub>.</li>
+				<li><strong>Local training.</strong> Minibatches from the weighted coreset; reparameterised Gaussian weights θ = μ + log(1+e<sup>ρ</sup>)·g.</li>
+				<li><strong>Upload.</strong> A random subset of clients sends its localised global parameters.</li>
+				<li><strong>Aggregate.</strong> Server mixes them in: v ← (1−β)v + (β/S) Σ v<sub>i</sub>.</li>
+			</ol>
+			<p class="blog-caveat">One round of CoreSet-PFedBayes (Algorithm 1). The reduction happens inside each client's dataset; it does not replace client sampling.</p>
+
+			<h2>What the theory says</h2>
+
+			<div class="blog-math">
+				<span class="blog-math-label">Generalisation rate on the coreset (Thm. 2)</span>
+				$$\frac{C_F}{N}\sum_{i=1}^{N} \int \big\| f^{i}_{\theta, w}(X^i) - f^{i}(X^i) \big\|^2_{L_2}\, \hat q_i(\theta; w)\, d\theta \;\le\; C_2\, n_k^{-\frac{2\beta}{2\beta + \Lambda}} \log^{2\delta'}(n_k)$$
+				<p class="in-words"><strong>In words:</strong> for \(\beta\)-Hölder-smooth targets with intrinsic data dimension \(\Lambda\), the error shrinks with the coreset size \(n_k\) at the minimax-optimal rate, up to a log factor. A matching lower bound shows you can't do better.</p>
+			</div>
+
+			<p>Theorems 1, 3 and 4 make the price explicit. Training on \(n_k \lt n\) points widens the generalisation error relative to full-data PFedBayes, but only by a closed-form amount \(\Im(w, n_k)\) that depends on the coreset weights and size. That amount is of order \(n_k^{-2\beta/(2\beta+\Lambda)}\).</p>
+
+			<h2>What the experiments cover</h2>
+			<p>We use 10 clients with non-IID splits of MNIST, Fashion-MNIST and CIFAR-10, and compare against FedAvg, BNFed, pFedMe, Per-FedAvg, PFedBayes and a random-subset baseline. All subset methods use 50% of each client's data.</p>
+
+			<div class="blog-table-wrap">
+				<table class="blog-table">
+					<caption>Table 1 of the paper. With half the data, the coreset's global model gets close to full-data PFedBayes on MNIST and FMNIST, and exceeds it on CIFAR-10. For personal models it beats random 50% on MNIST and FMNIST but not on CIFAR-10.</caption>
+					<thead><tr><th>Accuracy (%)</th><th>MNIST</th><th>FMNIST</th><th>CIFAR-10</th></tr></thead>
+					<tbody>
+					<tr><td><em>Global model</em></td><td></td><td></td><td></td></tr>
+					<tr><td>PFedBayes, full data</td><td>97.21</td><td>93.30</td><td>64.40</td></tr>
+					<tr><td>PFedBayes, random 50%</td><td>92.33</td><td>82.33</td><td>60.84</td></tr>
+					<tr><td>Random subset 50%</td><td>88.4</td><td>90.75</td><td>61.35</td></tr>
+					<tr class="is-ours"><td>CoreSet-PFedBayes 50%</td><td>96.3</td><td>92.7</td><td>71.5</td></tr>
+					<tr><td><em>Personal model</em></td><td></td><td></td><td></td></tr>
+					<tr><td>PFedBayes, full data</td><td>98.79</td><td>93.01</td><td>83.46</td></tr>
+					<tr><td>PFedBayes, random 50%</td><td>90.88</td><td>85.95</td><td>73.94</td></tr>
+					<tr class="is-ours"><td>CoreSet-PFedBayes 50%</td><td>92.48</td><td>89.55</td><td>69.66</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<p>Over training, the KL divergence between coreset and full-data posteriors falls quickly, and much faster than with a random subset. On three medical imaging datasets (COVID-19 radiography, APTOS diabetic retinopathy and OCTMNIST), split across two clients, our model-centric selection beats diversity-based submodular subset selection (log-det, disparity-sum, disparity-min) followed by FedAvg on average for COVID-19 and APTOS. On OCTMNIST it does not win on average.</p>
+
+			<p class="blog-caveat">These results support choosing local examples with the model in mind, in the tested settings. A coreset changes which examples are used for training; on its own it is not a formal privacy guarantee.</p>
+
+			<p><a href="../../#publications">&larr; Back to publications</a></p>
+		</article>
+	</main>
+</body>
+</html>
