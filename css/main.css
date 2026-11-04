@@ -652,3 +652,37 @@ ul {
     font-size: 14px;
   }
 }
+
+.rs-link {
+  color: #a00;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.news-list {
+  list-style: none;
+  margin: 1.1em 0 1.5em;
+  padding: 0;
+}
+
+.news-list li {
+  margin: 0 0 .6em;
+  padding-left: 6.2em;
+  position: relative;
+}
+
+.news-date {
+  color: #a00;
+  display: inline-block;
+  font-weight: 500;
+  left: 0;
+  position: absolute;
+  width: 6em;
+}
+
+@media (max-width: 600px) {
+  .news-list li { padding-left: 0; }
+  .news-date { display: block; position: static; width: auto; }
+}
