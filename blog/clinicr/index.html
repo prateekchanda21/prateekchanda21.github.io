@@ -45,7 +45,7 @@
 			<p>The standard few-shot chain-of-thought prompt for MedQA (Liévin et al., 2022) is <em>eliminative</em>. It copies the relevant history, then walks through options (A), (B), (C), &hellip;, accepting or rejecting each until one fits. That works when options exist. With an open question there is nothing to walk through. Clinicians instead build a differential diagnosis: take a finding, add or drop candidate diagnoses, take the next finding, and repeat until labs and context point to an answer.</p>
 
 			<figure class="blog-figure">
-				<img src="fig2.png" alt="Eliminative versus ClinicR reasoning" loading="lazy">
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Eliminative versus ClinicR reasoning" loading="lazy"></a>
 				<figcaption><strong>Figure 2 from the paper.</strong> MCQ-Eliminative iterates over the options, accepting or discarding each, while the forward MCQ-ClinicR prompt reasons from the patient's symptoms and context, the way a clinician would.</figcaption>
 			</figure>
 
@@ -71,47 +71,67 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Overview of the prompting strategies" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Overview of the prompting strategies" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> The two prompting strategies, Eliminative and ClinicR, each in a multiple-choice version (MedQA-MCQ) and an open-ended version (MedQA-Open).</figcaption>
 			</figure>
 
 			<h2>What the experiments show</h2>
-			<p>First, a sanity check: when options <em>are</em> given, ClinicR doesn't help. On the 1,273-question MedQA-MCQ test set, MCQ-ClinicR and MCQ-Eliminative are essentially tied (40.6% vs 41% with Llama-2-7B; 50% vs 52% with 70B). Incremental reasoning matters when the options are taken away.</p>
-			<p>For open-ended answers there is no exact-match metric, so eight final-year medical students rated each answer's reasoning and conclusion as Agree, Neutral or Disagree. They rated 500 MedQA-Open questions and 25 real cases contributed by practising clinicians (ClinicianCases).</p>
+			<p>Each MedQA-Open question is a MedQA-USMLE question with the options removed and the question reworded to be open-ended:</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Figures 7–8 of the paper. The gap is largest for the smaller model: without options to anchor it, the eliminative prompt struggles to draw on what the 7B model knows. At 70B every method does well.</caption>
-					<thead><tr><th>Method</th><th>MedQA-Open: share of answers medical experts agreed with (%)</th></tr></thead>
-					<tbody>
-					<tr><td colspan="2"><em>Llama-2-7B-chat</em></td></tr>
-					<tr><td>Eliminative</td><td>56%</td></tr>
-					<tr><td>ClinicR</td><td>83%</td></tr>
-					<tr><td>ClinicR → MCQ-Eliminative</td><td>81%</td></tr>
-					<tr class="is-ours"><td>ClinicR → Verifier</td><td>87%</td></tr>
-					<tr><td colspan="2"><em>Llama-2-70B-chat</em></td></tr>
-					<tr><td>Eliminative</td><td>84%</td></tr>
-					<tr><td>ClinicR</td><td>87%</td></tr>
-					<tr><td>ClinicR → MCQ-Eliminative</td><td>87%</td></tr>
-					<tr class="is-ours"><td>ClinicR → Verifier</td><td>87%</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<figure class="blog-figure">
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> The same question in multiple-choice (left) and open-ended (right) form.</figcaption>
+			</figure>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Expert agreement on clinician-contributed cases (Figures 9–10). With only 25 cases all methods score highly and the differences are small.</caption>
-					<thead><tr><th>ClinicianCases (25 real cases)</th><th>Llama-2-7B</th><th>Llama-2-70B</th></tr></thead>
-					<tbody>
-					<tr><td>Eliminative</td><td>90%</td><td>86%</td></tr>
-					<tr><td>ClinicR</td><td>88%</td><td>82%</td></tr>
-					<tr><td>ClinicR → MCQ-Eliminative</td><td>88%</td><td>84%</td></tr>
-					<tr><td>ClinicR → Verifier</td><td>90%</td><td>82%</td></tr>
-					</tbody>
-				</table>
-			</div>
 
-			<p>Why would options <em>hurt</em>? MCQ distractors are designed to mislead medical students, and they can mislead models too, by confining reasoning to the listed choices. An open question lets the model consider the full range of possibilities from the history, which is closer to how diagnosis actually works.</p>
+			<h3>A sanity check: options already given</h3>
+			<p>If the options are on the page, incremental reasoning shouldn't help much, and it doesn't. On the 1,273-question MedQA-MCQ test set the two prompting styles are essentially tied.</p>
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> Multiple-choice accuracy. With options present, MCQ-ClinicR and MCQ-Eliminative score within two points of each other at both model sizes.</figcaption>
+			</figure>
+
+
+			<h3>Open questions, judged by medical experts</h3>
+			<p>For open answers there is no exact-match metric. Eight final-year medical students rated each answer's reasoning and conclusion as <em>agree</em>, <em>neutral</em> or <em>disagree</em>, on 500 MedQA-Open questions.</p>
+
+			<figure class="blog-figure">
+				<a href="fig7.png" target="_blank" rel="noopener" title="Open full size"><img src="fig7.png" alt="Figure 7 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 7 from the paper.</strong> Expert ratings for Llama-2-7B-chat on MedQA-Open (% of answers). The eliminative prompt gets agreement on only 56% of answers, with 30% disagreement. ClinicR reaches 83%, and ClinicR plus the verifier 87%.</figcaption>
+			</figure>
+
+			<p>The gap is largest for the small model. With no options to anchor it, the eliminative prompt struggles to draw out what the 7B model knows, while ClinicR's step-by-step structure does. At 70B, every method does well:</p>
+
+			<figure class="blog-figure">
+				<a href="fig8.png" target="_blank" rel="noopener" title="Open full size"><img src="fig8.png" alt="Figure 8 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 8 from the paper.</strong> The same evaluation with Llama-2-70B-chat. All four approaches reach 84&ndash;87% agreement.</figcaption>
+			</figure>
+
+
+			<h3>Real cases from practising clinicians</h3>
+			<p>We also collected 25 real cases from practising clinicians, which we call ClinicianCases. With so few cases, the differences are small, and all methods score highly:</p>
+
+			<figure class="blog-figure">
+				<a href="fig9.png" target="_blank" rel="noopener" title="Open full size"><img src="fig9.png" alt="Figure 9 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 9 from the paper.</strong> ClinicianCases with Llama-2-7B-chat. Agreement ranges from 88% to 90% across approaches.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig10.png" target="_blank" rel="noopener" title="Open full size"><img src="fig10.png" alt="Figure 10 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 10 from the paper.</strong> ClinicianCases with Llama-2-70B-chat. Agreement ranges from 82% to 86%.</figcaption>
+			</figure>
+
+
+			<h3>What the difference looks like</h3>
+
+			<figure class="blog-figure">
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Figure 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 3 from the paper.</strong> Responses from the two prompting styles on (a) MedQA-MCQ and (b) MedQA-Open. The eliminative response restates the whole case and then walks through options. ClinicR's response builds the answer from the history, one finding at a time.</figcaption>
+			</figure>
+
+			<p>Why would options <em>hurt</em>? MCQ distractors are designed to mislead medical students, and they can mislead models too, by confining the reasoning to the listed choices. An open question lets the model consider the full range of possibilities from the history, which is closer to how diagnosis actually works.</p>
 
 			<div class="blog-callout">
 				<p><strong>Scope.</strong> This is a research result on question-answering benchmarks, evaluated with expert ratings on a 3-point scale. It is not clinical validation, and generated reasoning should not be used as medical advice or as a substitute for a clinician.</p>

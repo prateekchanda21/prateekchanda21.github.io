@@ -51,7 +51,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="FairPO framework flowchart" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="FairPO framework flowchart" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> The FairPO framework. Privileged labels get a preference loss on confusing cases and BCE otherwise. Non-privileged labels get a BCE loss constrained against the reference model. GRPO adaptively balances the two group losses.</figcaption>
 			</figure>
 
@@ -91,36 +91,39 @@
 			<p>Training alternates two mirror steps: mirror <em>ascent</em> on \(\alpha\), then mirror <em>descent</em> on the model weights. The two group losses have different scales, so \(\alpha\) is updated from each loss's relative change against its running average rather than from the raw values. This keeps the balance from oscillating.</p>
 
 			<h2>Results</h2>
-			<p>The base model is a frozen ViT with a small MLP head per label, evaluated on MS-COCO 2014 and NUS-WIDE. The reference model is the BCE-trained baseline.</p>
+			<p>The base model is a frozen ViT with a small MLP head per label, and the reference model is the BCE-trained baseline. The question has two halves. Do the rare labels get better? And do the common ones stay put?</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Table 1 of the paper (mean of 3 runs). FairPO-CPO is +3.44 mAP points over BCE-SFT and +1.41 over the strongest baseline, focal loss (p &lt; 0.05).</caption>
-					<thead><tr><th>Method</th><th>MS-COCO: mAP on privileged (rarest 20%) labels</th></tr></thead>
-					<tbody>
-					<tr><td>BCE-SFT</td><td>86.32</td></tr>
-					<tr><td>Group DRO + BCE</td><td>87.92</td></tr>
-					<tr><td>Focal loss</td><td>88.35</td></tr>
-					<tr><td>FairPO-SimPO</td><td>87.67</td></tr>
-					<tr><td>FairPO-DPO</td><td>88.02</td></tr>
-					<tr class="is-ours"><td>FairPO-CPO</td><td>89.76</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<h3>Do the rare labels improve?</h3>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Privileged (P) and non-privileged (P&#772;) mAP. The drop on P&#772; relative to BCE (&minus;0.31 and &minus;0.41) is not statistically significant.</caption>
-					<thead><tr><th>mAP</th><th>MS-COCO P</th><th>MS-COCO P&#772;</th><th>NUS-WIDE P</th><th>NUS-WIDE P&#772;</th></tr></thead>
-					<tbody>
-					<tr><td>BCE-SFT (reference)</td><td>86.32</td><td>90.65</td><td>63.53</td><td>70.24</td></tr>
-					<tr><td>Focal loss</td><td>88.35</td><td>89.81</td><td>65.81</td><td>68.95</td></tr>
-					<tr class="is-ours"><td>FairPO-CPO</td><td>89.76</td><td>90.34</td><td>67.12</td><td>69.83</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<figure class="blog-figure">
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> MS-COCO, with P the rarest 20% of labels. FairPO-CPO reaches 89.76 mAP on P, +3.44 over BCE and +1.41 over focal loss (significant, p &lt; 0.05). On the remaining labels, its 90.34 against BCE's 90.65 is not a significant difference.</figcaption>
+			</figure>
 
-			<p>The ablations show that every piece matters. Replacing the preference loss with BCE, dropping the \(\bar P\) constraint, or fixing \(\alpha\) at 0.5/0.5 all hurt. A "global CPO" applied to every label without the group split is better than BCE but clearly worse than FairPO. Using <em>only</em> confusing negatives, and ignoring confusing positives, collapses privileged mAP to 73.15.</p>
+			<p>Not every variant helps. The DPO and SimPO versions do not beat focal loss on the privileged labels. The CPO version works best because it combines a reference-free preference term with a BCE anchor: the model learns that the rare label should <em>outrank</em> its confusing competitor, and also what its score should be in absolute terms.</p>
+
+			<h3>Does it carry over?</h3>
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> NUS-WIDE. FairPO-CPO again leads on the privileged labels (67.12 against focal loss's 65.81), and its small drop on the rest (&minus;0.41 against BCE) is not significant.</figcaption>
+			</figure>
+
+
+			<h3>Which pieces matter?</h3>
+			<p>FairPO has three parts: the preference loss, the guardrail on non-privileged labels, and the adaptive GRPO weighting. Removing any one of them hurts.</p>
+
+			<figure class="blog-figure">
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 3 from the paper.</strong> Component ablation on MS-COCO. Without the preference loss the rare-label gain falls from +3.44 to +1.80. Without the guardrail, the non-privileged labels lose 1.36 mAP. With fixed 0.5/0.5 weights instead of GRPO, both groups get worse. Applying CPO to all labels with no group split ("global CPO") is clearly weaker.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="table4.png" target="_blank" rel="noopener" title="Open full size"><img src="table4.png" alt="Table 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 4 from the paper.</strong> How the preference pairs are built. Using only confusing negatives, and ignoring confusing positives, collapses rare-label mAP to 73.15. Removing the BCE fallback costs 0.71 points.</figcaption>
+			</figure>
+
 
 			<p class="blog-caveat">This is a targeted reallocation of learning effort, not a proof of fairness under every definition. Which labels get priority must be chosen for the task, and the experiments use frequency-defined groups. The set of confusing pairs changes during training, the DPO variant needs a reference model, and the GRPO balance needs tuning.</p>
 

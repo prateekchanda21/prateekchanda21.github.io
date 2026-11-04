@@ -76,13 +76,13 @@
 			<p>Free-form "thinking" is hard to check directly. The maze move or the order ID is buried in prose. So at each step boundary we <em>fork</em> the model with a separate prompt that asks it to report the state variables a verifier needs. Structured tool calls are parsed directly. The forked call never touches the main context.</p>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Interwhen offline and online phases" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Interwhen offline and online phases" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> The two phases. Offline, an LLM turns the policy and task description into verifier code and a state-to-verifier map. Online, the stream of thinking and tool calls is checked step by step: a passing check lets generation continue, and a violation blocks the tool call and injects feedback.</figcaption>
 			</figure>
 
 			<p>Because checks run asynchronously, a trace that never violates anything finishes as fast as it would without monitoring. The one exception is a <em>write</em> tool call, such as cancelling an order, which waits for its check so it can be blocked before it executes.</p>
 			<figure class="blog-figure">
-				<img src="fig2.png" alt="Maze example comparing standard output, Tree of Thoughts and interwhen" loading="lazy">
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Maze example comparing standard output, Tree of Thoughts and interwhen" loading="lazy"></a>
 				<figcaption><strong>Figure 2 from the paper.</strong> (a) A Maze instance: count the right turns on the path from green to red. (b) Standard output, Tree of Thoughts and interwhen on the same task; interwhen steps in with textual feedback at the step where an illegal move appears.</figcaption>
 			</figure>
 
@@ -91,7 +91,7 @@
 			<p>Outside math and code, ready-made verifiers are rare. Given the policy document, the task description and the tool list, a frontier LLM writes (1) a verifier function per rule and (2) a map from state patterns to verifiers. For example, a rule that "credit for a cancelled order must go back to the original payment source" becomes <code>check_refund_mode(order_id, payment_source, refund_target)</code>. It is triggered whenever the trace ends in a <code>cancel_order</code> call.</p>
 			<p>To trust that generated code, the formal variant writes a Lean specification of the rule, a Boolean implementation, and a proof that the two are equivalent. The verifier is accepted only if the proof checks. A human then needs to confirm only that the <em>specification</em> says what the policy means.</p>
 			<figure class="blog-figure">
-				<img src="fig3.png" alt="Lean specification, verifier and equivalence proof" loading="lazy">
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Lean specification, verifier and equivalence proof" loading="lazy"></a>
 				<figcaption><strong>Figure 3 from the paper.</strong> Lean 4 formalisation of the retail rule "refunds must go to the original payment method or a gift card": (a) the specification, (b) the Boolean verifier, (c) the proof that they agree. The verifier is accepted only if the proof checks.</figcaption>
 			</figure>
 
@@ -111,38 +111,82 @@
 				<p class="in-words"><strong>In words:</strong> compare the odds of returning to compliance with the odds of leaving it. Verification wins in the long run when it improves that ratio. If the base model can never recover on its own (\(\gamma = 0\)), interwhen is better at every horizon. Theorem 4.4 adds that, if false alarms are harmless and feedback repairs violations at least as often as the model recovers unaided, interwhen is at least as good at <em>every</em> finite horizon.</p>
 			</div>
 
-			<h2>What happens in the experiments?</h2>
+			<h2>Does it help agents follow policy?</h2>
+			<p>The headline test is &tau;&sup2;-bench telecom. A simulated customer-service agent must troubleshoot a user's mobile plan while obeying a written policy, with a simulated user on the other side. Qwen3-30B-A3B-Thinking, a small open reasoning model, completes only 32% of tasks reliably. Pass^4 counts a task only if it succeeds on all four independent runs.</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Adding verifiers built from the policy, then from a few failing traces, then a task-completeness check. The best variant uses 96.93% of the chain-of-thought token budget.</caption>
-					<thead><tr><th>Method</th><th>τ²-bench telecom, Qwen3-30B-A3B-Thinking, solo mode (Pass^4, %)</th></tr></thead>
-					<tbody>
-					<tr><td>Chain-of-thought</td><td>32.17%</td></tr>
-					<tr><td>IW (policy)</td><td>42.11%</td></tr>
-					<tr><td>IW (policy + trace)</td><td>71.10%</td></tr>
-					<tr class="is-ours"><td>IW (policy + trace + prompt)</td><td>87.70%</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<figure class="blog-figure">
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 3 from the paper.</strong> &tau;&sup2;-bench telecom with Qwen3-30B. Verifiers generated from the policy alone give the first jump. Refining them from a handful of failing traces ("trc.") and adding a task-completeness check ("cmp.") takes Pass^4 to 87.7%, while using slightly <em>fewer</em> tokens than chain-of-thought.</figcaption>
+			</figure>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>The same generated verifiers transfer across model families without model-specific changes (Table 2 of the paper).</caption>
-					<thead><tr><th>Setting</th><th>Baseline (CoT)</th><th>With interwhen</th></tr></thead>
-					<tbody>
-					<tr><td>τ²-bench telecom · Claude Haiku 4.5 (Pass^4)</td><td>20.2%</td><td>65.8%</td></tr>
-					<tr><td>τ²-bench telecom · GPT-5.4 Mini (Pass^4)</td><td>47.4%</td><td>82.5%</td></tr>
-					<tr><td>AgentSafetyBench (safety score)</td><td>48.75%</td><td>72.31%</td></tr>
-					<tr><td>VitaBench OTA · Claude Haiku 4.5 (reward)</td><td>17.0%</td><td>23.0%</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<p>Reading the failing traces mattered more than we expected. The written policy was incomplete. It said "at most 2GB" where the environment actually required "exactly 2GB". Building verifiers turned out to be an iterative process, and the policy itself got corrected along the way.</p>
+			<p>The gains are not tied to one model. The same generated verifiers, unchanged, take Claude Haiku 4.5 from 20.2% to 65.8% Pass^4 on &tau;&sup2;-bench telecom, and GPT-5.4 Mini from 47.4% to 82.5%. On VitaBench's travel-booking tasks they add 4&ndash;6 points of reward for Claude Haiku 4.5 and GPT-5.4 Mini, and a smaller gain for GPT-5.4.</p>
 
-			<p>On non-agentic reasoning benchmarks whose policies encode mathematical or logical constraints, interwhen-based steering reaches near-perfect accuracy for reasoning models. It uses a fraction of the tokens that test-time verification baselines need.</p>
+
+			<h3>Safer, at a price</h3>
+			<p>Being strict has a cost. On AgentSafetyBench, safety rises sharply. Helpfulness on tasks that <em>cannot</em> be done safely (\(H_{\text{uf}}\), lower is better) falls, which is the point. But helpfulness on tasks that are safe to complete also dips. The benchmark's policy is vague, for example "don't call tools before obtaining the necessary information", so the generated verifiers err on the side of blocking.</p>
+
+			<figure class="blog-figure">
+				<a href="table4.png" target="_blank" rel="noopener" title="Open full size"><img src="table4.png" alt="Table 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 4 from the paper.</strong> AgentSafetyBench. Safety goes from 48.75% to 72.31% when instance-specific verifiers are added to the policy ones. Helpfulness on fulfillable tasks (\(H_{\text{ff}}\)) drops from 98.24% to 89.26%.</figcaption>
+			</figure>
+
+
+			<h2>Is it cheaper than searching?</h2>
+			<p>On reasoning puzzles with hard constraints, the natural competitor is test-time search, which explores many trajectories and keeps the best. The puzzles are Game of 24, mazes, spatial maps, ZebraLogic grids, and VERINA's verified-code and specification tasks. The search baselines are best-of-k with a critic, generate-and-test, and Tree of Thoughts. We compare methods within the same compute budget, measured in output tokens relative to chain-of-thought.</p>
+
+			<figure class="blog-figure">
+				<a href="table5.png" target="_blank" rel="noopener" title="Open full size"><img src="table5.png" alt="Table 5 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 5 from the paper.</strong> Accuracy and tokens (% of CoT) grouped by budget. In the cheapest group, interwhen beats chain-of-thought on every task, and on Game24 it does so with 62% of the tokens. Tree of Thoughts, in the largest group, spends up to about 9&times; the tokens of CoT.</figcaption>
+			</figure>
+
+			<p>Single-trajectory steering also combines with search. If the first steered trace fails, restart, keeping the verifiers. This hybrid matches generate-and-test's accuracy at a fraction of the cost:</p>
+
+			<figure class="blog-figure">
+				<a href="table8.png" target="_blank" rel="noopener" title="Open full size"><img src="table8.png" alt="Table 8 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 8 from the paper.</strong> Generate &amp; test using interwhen's verifiers (GT-c) versus interwhen + generate &amp; test (IW-GT). On Game24 both reach 99.49% with four attempts, but IW-GT uses 69% of CoT's tokens against 106%.</figcaption>
+			</figure>
+
+
+			<h2>Does the feedback actually change the model's mind?</h2>
+			<p>A verifier that flags an error is only useful if the model listens. On Maze and SpatialMap we measure the probability the model assigns to the correct answer just before and just after each feedback message.</p>
+
+			<figure class="blog-figure">
+				<a href="table6.png" target="_blank" rel="noopener" title="Open full size"><img src="table6.png" alt="Table 6 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 6 from the paper.</strong> Mean probability of the correct answer before and after verifier feedback. On Maze it jumps from 0.49 to 0.81 across 460 feedback events; on SpatialMap it rises from 0.13 to 0.20.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Figure 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 4 from the paper.</strong> The first piece of feedback does most of the work. On Maze, P(correct) goes from about 0.40 to 0.89 after the first feedback. Later feedbacks arrive on harder instances and help less.</figcaption>
+			</figure>
+
+
+			<h2>Are the cheap parts good enough?</h2>
+			<p>Two components could be weak links: the generated verifiers, and the model that extracts state from free text.</p>
+
+			<figure class="blog-figure">
+				<a href="table7.png" target="_blank" rel="noopener" title="Open full size"><img src="table7.png" alt="Table 7 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 7 from the paper.</strong> Lean verifiers, generated in a closed loop with machine-checked proofs, reach 83.77% Pass^4 on &tau;&sup2;-bench telecom, against 87.70% for manually validated Python verifiers. That is close, with no human reading the code.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="table10.png" target="_blank" rel="noopener" title="Open full size"><img src="table10.png" alt="Table 10 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 10 from the paper.</strong> Swapping the argument extractor. A 3B model matches GPT-5.4 within 0.4 points on every metric, so state extraction can run on a small model.</figcaption>
+			</figure>
+
+			<p>Finally, the approach is not specific to reasoning models. On ZebraLogic it helps the instruct, non-reasoning, variant of Qwen3-30B just as much:</p>
+
+			<figure class="blog-figure">
+				<a href="table9.png" target="_blank" rel="noopener" title="Open full size"><img src="table9.png" alt="Table 9 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 9 from the paper.</strong> Chain-of-thought versus interwhen on instruct and thinking variants of Qwen3-30B. On ZebraLogic X-Large, the instruct model goes from 69.8% to 90.6% with about 3% more tokens.</figcaption>
+			</figure>
+
 
 			<div class="blog-callout">
-				<p><strong>What it does not guarantee.</strong> A Lean proof shows that the verifier matches its <em>specification</em>. It cannot show that the specification captures what the policy author meant, or that the forked extractor read the right state from free text. Policies can also be incomplete: on &tau;&sup2;-bench, looking at a handful of traces revealed that "at most 2GB" really meant "exactly 2GB". Vague policies can lead to over-cautious verifiers that block legitimate tool calls.</p>
+				<p><strong>What it does not guarantee.</strong> A Lean proof shows that the verifier matches its <em>specification</em>. It cannot show that the specification captures what the policy author meant, or that the forked extractor read the right state from free text. Vague policies can produce over-cautious verifiers, as AgentSafetyBench shows. Implicit rules, and catching every violation, remain open problems.</p>
 			</div>
 
 			<p><a href="../../#publications">&larr; Back to publications</a></p>

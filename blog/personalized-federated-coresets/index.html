@@ -68,7 +68,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="CoreSet-PFedBayes system diagram" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="CoreSet-PFedBayes system diagram" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> System diagram. Each client i trains a Gaussian personalised posterior on its coreset-weighted data w<sub>i</sub>D<sup>i</sup>; the server keeps a global Gaussian family. The optimal weights w* come from comparing the coreset-weighted client objective with the full-data one.</figcaption>
 			</figure>
 
@@ -90,7 +90,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig3.png" alt="KL divergence over epochs" loading="lazy">
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="KL divergence over epochs" loading="lazy"></a>
 				<figcaption><strong>Figure 3 from the paper.</strong> KL divergence between the coreset-weighted and full-data client posteriors over training on MNIST. (a) It quickly falls to near zero. (b) An optimised coreset converges much faster than a random 50% subset.</figcaption>
 			</figure>
 
@@ -114,28 +114,48 @@
 
 			<p>Theorems 1, 3 and 4 make the price explicit. Training on \(n_k \lt n\) points widens the generalisation error relative to full-data PFedBayes, but only by a closed-form amount \(\Im(w, n_k)\) that depends on the coreset weights and size. That amount is of order \(n_k^{-2\beta/(2\beta+\Lambda)}\).</p>
 
-			<h2>What the experiments cover</h2>
-			<p>We use 10 clients with non-IID splits of MNIST, Fashion-MNIST and CIFAR-10, and compare against FedAvg, BNFed, pFedMe, Per-FedAvg, PFedBayes and a random-subset baseline. All subset methods use 50% of each client's data.</p>
+			<h2>What the experiments show</h2>
+			<h3>Accuracy with half the data</h3>
+			<p>We use 10 clients with non-IID splits of MNIST, Fashion-MNIST and CIFAR-10, and compare against FedAvg, BNFed, pFedMe, Per-FedAvg and PFedBayes. Each baseline is run on full data and on a random 50% of each client's data; ours uses a 50% coreset.</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Table 1 of the paper. With half the data, the coreset's global model gets close to full-data PFedBayes on MNIST and FMNIST, and exceeds it on CIFAR-10. For personal models it beats random 50% on MNIST and FMNIST but not on CIFAR-10.</caption>
-					<thead><tr><th>Accuracy (%)</th><th>MNIST</th><th>FMNIST</th><th>CIFAR-10</th></tr></thead>
-					<tbody>
-					<tr><td><em>Global model</em></td><td></td><td></td><td></td></tr>
-					<tr><td>PFedBayes, full data</td><td>97.21</td><td>93.30</td><td>64.40</td></tr>
-					<tr><td>PFedBayes, random 50%</td><td>92.33</td><td>82.33</td><td>60.84</td></tr>
-					<tr><td>Random subset 50%</td><td>88.4</td><td>90.75</td><td>61.35</td></tr>
-					<tr class="is-ours"><td>CoreSet-PFedBayes 50%</td><td>96.3</td><td>92.7</td><td>71.5</td></tr>
-					<tr><td><em>Personal model</em></td><td></td><td></td><td></td></tr>
-					<tr><td>PFedBayes, full data</td><td>98.79</td><td>93.01</td><td>83.46</td></tr>
-					<tr><td>PFedBayes, random 50%</td><td>90.88</td><td>85.95</td><td>73.94</td></tr>
-					<tr class="is-ours"><td>CoreSet-PFedBayes 50%</td><td>92.48</td><td>89.55</td><td>69.66</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<figure class="blog-figure">
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> Personal and global model accuracy. With half the data, our global model nearly matches full-data PFedBayes on MNIST and Fashion-MNIST, and beats it on CIFAR-10 (71.5 against 64.40). For personal models it beats PFedBayes on a random half on MNIST and Fashion-MNIST, but not on CIFAR-10.</figcaption>
+			</figure>
 
-			<p>Over training, the KL divergence between coreset and full-data posteriors falls quickly, and much faster than with a random subset. On three medical imaging datasets (COVID-19 radiography, APTOS diabetic retinopathy and OCTMNIST), split across two clients, our model-centric selection beats diversity-based submodular subset selection (log-det, disparity-sum, disparity-min) followed by FedAvg on average for COVID-19 and APTOS. On OCTMNIST it does not win on average.</p>
+			<p>Figure 3, in the method section, shows why a chosen coreset beats a random one: the coreset-trained posterior converges to the full-data posterior within a few epochs.</p>
+
+			<h3>How small can the coreset be?</h3>
+
+			<figure class="blog-figure">
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 3 from the paper.</strong> Accuracy and communication rounds as the coreset shrinks. Even at 10% of the data, MNIST accuracy is 85.43%, which is above a random 50% subset (80.2%). It also needs only 32 communication rounds, against 194 for full-data PFedBayes.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig5.png" target="_blank" rel="noopener" title="Open full size"><img src="fig5.png" alt="Figure 5 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 5 from the paper.</strong> Test accuracy over communication rounds for different coreset sizes on MNIST and CIFAR. Smaller coresets converge in fewer rounds.</figcaption>
+			</figure>
+
+
+			<h3>Is the KL term needed?</h3>
+			<p>Our objective (Eq. 8) adds a posterior-matching KL term to the usual likelihood-matching coreset loss. Dropping it is the obvious ablation:</p>
+
+			<figure class="blog-figure">
+				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Figure 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 4 from the paper.</strong> Training loss over communication rounds with 30% of the data, on MNIST (left) and CIFAR (right). With the KL term (red) the loss falls lower and more steadily than with the coreset loss alone (orange).</figcaption>
+			</figure>
+
+
+			<h3>Medical imaging</h3>
+			<p>Finally, three medical imaging datasets are split across two clients, with one class shared and the others private to each client. We compare against diversity-based submodular selection (log-det, disparity-sum, disparity-min) followed by FedAvg.</p>
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> Class-wise global accuracy on COVID-19 radiography, APTOS diabetic retinopathy and OCTMNIST. On average our model-centric selection beats the submodular baselines on COVID-19 and APTOS, but not on OCTMNIST.</figcaption>
+			</figure>
+
 
 			<p class="blog-caveat">These results support choosing local examples with the model in mind, in the tested settings. A coreset changes which examples are used for training; on its own it is not a formal privacy guarantee.</p>
 

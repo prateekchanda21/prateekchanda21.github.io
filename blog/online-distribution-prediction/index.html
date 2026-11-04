@@ -86,7 +86,7 @@
 			<p>Drift and corruption make old data misleading for different reasons. A corrupted point distorts the score directly. Under drift, even clean points from long ago describe a distribution that no longer holds. All four variants share the same model, prior and loss. They differ only in which past losses enter the score \(S_t\):</p>
 
 			<figure class="blog-figure">
-				<img src="fig3.png" alt="Cumulative and average regret for four memory rules" loading="lazy">
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Cumulative and average regret for four memory rules" loading="lazy"></a>
 				<figcaption><strong>Figure 3 from the paper.</strong> Within-stream regret at T = 4000 in the drifting, corrupted setting, averaged over ten paired seeds: (a) cumulative Wasserstein regret, (b) average regret. Once the distribution drifts, full history keeps accumulating error; restart, sliding-window and discounted memory stay low.</figcaption>
 			</figure>
 
@@ -116,14 +116,31 @@
 				<p><strong>The guarantee has conditions.</strong> It assumes bounded support and regularity of the latent cluster representation, and the restart schedule must be tuned using bounds on drift and corruption. A sublinear total number of corruptions alone is not enough; the theory needs a suitable bound within each segment. The kernel bandwidth and equal weights are fixed, so the residual mismatch of that family is tracked as a separate approximation term.</p>
 			</div>
 
-			<h2>What the experiments do, and do not, show</h2>
-			<p>A factorial design on controlled streams varies drift, corruption level, horizon and learning-rate schedule, and compares full-history, restart, sliding-window and discounted updates. Shortening memory helps when the underlying law keeps moving. These finite-horizon experiments illustrate the mechanism; they are not a substitute for the asymptotic theorem, which depends on the assumptions above.</p>
+			<h2>What the experiments show, and what they don't</h2>
+			<p>The theorem is asymptotic, so the experiments ask concrete questions on controlled synthetic streams where the true distribution is known. Each comparison averages ten paired seeds, so the four memory rules see exactly the same data.</p>
+
+			<h3>Does forgetting keep regret from growing linearly?</h3>
+			<p>If the distribution keeps moving to places it has never been, a learner that remembers everything should fall further and further behind. We vary the horizon from 500 to 8,000 steps and fit how cumulative regret grows.</p>
+
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Regret scaling with horizon for four memory rules" loading="lazy">
-				<figcaption><strong>Figure 1 from the paper.</strong> Regret under non-repeating distribution shifts as the horizon grows. (a) Cumulative regret on log&ndash;log axes with fitted power-law exponents: full history grows almost linearly (&alpha;&#770; = 1.16), while restart and sliding window grow sub-linearly (&alpha;&#770; = 0.83 and 0.84). (b) Normalised regret R<sub>T</sub>/T.</figcaption>
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Figure 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 1 from the paper.</strong> Regret under shifts that never repeat. Full history grows almost linearly (fitted &alpha;&#770; = 1.16). Restart and sliding window grow sub-linearly (&alpha;&#770; = 0.83 and 0.84), and their normalised regret R<sub>T</sub>/T falls as the horizon grows. The fits describe these horizons; they are not asymptotic rates.</figcaption>
 			</figure>
 
-			<p>This is a framework for distributional prediction, not a claim that one clustering model fits every stream. Its practical value depends on whether the latent geometry can represent the distributions of interest, and whether the memory schedule matches how fast they change.</p>
+
+			<h3>Does it find the right number of clusters?</h3>
+			<p>The quasi-posterior also has to decide <em>how many</em> clusters there are. "Off-order mass" is the posterior probability placed on the wrong number. Here the true number is 2, and the cap is set to match.</p>
+
+			<figure class="blog-figure">
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Figure 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 2 from the paper.</strong> Off-order mass, per step (left) and cumulative (right). Restarting leaks the most, because every restart begins again from the prior over k. Full history, sliding window and discounting keep the leakage small, and its cumulative total grows only very slowly (fitted &zeta;&#770; = 0.02).</figcaption>
+			</figure>
+
+
+			<h3>And within a single drifting, corrupted stream?</h3>
+			<p>Figure 3, in the memory section above, follows one stream of 4,000 steps with drift and corruption. Until the first shift, all four rules behave the same. After it, full history keeps paying for stale data, while the three localized-memory rules recover and stay low. That is the qualitative behaviour the theory predicts.</p>
+
+			<p>This is a framework for distributional prediction, not a claim that one clustering model fits every stream. These finite-horizon experiments illustrate the mechanism, but they do not replace the theorem and its assumptions. In practice, its value depends on whether the latent geometry can represent the distributions of interest, and whether the memory schedule matches how fast they change.</p>
 
 			<p><a href="../../#publications">&larr; Back to publications</a></p>
 		</article>

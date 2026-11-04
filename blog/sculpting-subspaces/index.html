@@ -45,7 +45,7 @@
 			<p>A weight matrix is not equally important in every direction. If you write it as a sum of rank-one pieces ordered by singular value, the first few pieces carry most of what the layer does, and the long tail contributes very little: you can delete much of it without the model noticing (we verify this by pruning in the paper's appendix). That tail is spare capacity, and it is where new tasks can be written without disturbing the old ones.</p>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Diagram of the adaptive SVD continual fine-tuning method" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Diagram of the adaptive SVD continual fine-tuning method" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> Overview of the adaptive SVD method. Layer importance, computed from input&ndash;output similarity, sets each layer's retention ratio r<sup>(l)</sup>. The SVD splits every weight matrix into a high-rank subspace kept for earlier tasks and a low-rank subspace, and the new task's gradients are projected into the low-rank part.</figcaption>
 			</figure>
 
@@ -87,41 +87,60 @@
 			</ol>
 			<p class="blog-caveat">The whole algorithm. Nothing grows with the number of tasks: no new modules and no stored data or gradients.</p>
 
-			<h2>How it performed</h2>
-			<p>We evaluate T5-Large and LLaMA-2 7B on the standard 5-task and the longer 15-task continual-learning sequences (average accuracy after the last task, averaged over three task orders), and LLaMA-2 7B-Chat on the harder TRACE benchmark.</p>
+			<h2>Does it actually stop forgetting?</h2>
+			<p>We start with the two standard continual-learning sequences: five text-classification tasks, and a longer 15-task stream that mixes in GLUE, SuperGLUE and IMDB. Plain sequential fine-tuning (SeqFT) shows the problem we are solving. After 15 tasks, T5-Large is down to 7.4% average accuracy, having overwritten almost everything but the last task.</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>From Table 1 of the paper. Plain sequential fine-tuning collapses to 7.4%. Constraining the update directions recovers most of the gap to joint multi-task training without adding per-task parameters.</caption>
-					<thead><tr><th>Method</th><th>T5-Large, 15-task sequence: average accuracy (%)</th></tr></thead>
-					<tbody>
-					<tr><td>SeqFT (plain fine-tuning)</td><td>7.4%</td></tr>
-					<tr><td>EWC</td><td>45.1%</td></tr>
-					<tr><td>IncLoRA</td><td>61.2%</td></tr>
-					<tr><td>LFPT5</td><td>69.2%</td></tr>
-					<tr><td>O-LoRA</td><td>69.6%</td></tr>
-					<tr class="is-ours"><td>Ours (adaptive SVD)</td><td>71.3%</td></tr>
-					<tr><td>Multi-task (upper bound)</td><td>76.5%</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<figure class="blog-figure">
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> Average accuracy after the final task. On the 15-task stream we reach 71.3%, ahead of O-LoRA (69.6%) and every regularisation and replay baseline. ProgPrompt adds task-specific prompts, and PerTaskFT and multi-task learning (MTL) train separate models or see all tasks at once, so they serve as reference points rather than direct competitors.</figcaption>
+			</figure>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Table 2 of the paper. Positive backward transfer means earlier tasks did not degrade on average.</caption>
-					<thead><tr><th>TRACE (LLaMA-2-7B-Chat)</th><th>Average accuracy</th><th>Backward transfer</th></tr></thead>
-					<tbody>
-					<tr><td>SeqFT</td><td>23.0</td><td>&minus;8.3</td></tr>
-					<tr><td>O-LoRA</td><td>41.3</td><td>6.2</td></tr>
-					<tr class="is-ours"><td>Ours (adaptive SVD)</td><td>48.4</td><td>7.1</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<p>The gap widens as the stream gets longer. On five tasks we roughly tie O-LoRA. On fifteen we pull ahead, because the free subspace is recomputed for every new task instead of each task's adapter being frozen in place.</p>
 
-			<p>On the 5-task benchmark with LLaMA-2 7B the method reaches 79.6% average accuracy. After continual learning on TRACE we also check general ability, instruction following and safety against the base chat model. MMLU, TydiQA, BoolQ and PIQA are preserved or improve; GSM8K and BBH drop. Helpfulness and safety win rates are clearly better than replay or sequential LoRA.</p>
+			<h3>A harder stream: TRACE</h3>
+			<p>Those benchmarks are all classification. TRACE is closer to real use: eight instruction-tuned tasks spanning multilingual understanding, domain knowledge, arithmetic and code, learned one after another by LLaMA-2-7B-Chat.</p>
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> TRACE results. We reach 48.4% average accuracy against O-LoRA's 41.3%. Backward transfer is positive (+7.1): on average, earlier tasks got slightly <em>better</em> as later ones were learned.</figcaption>
+			</figure>
+
+
+			<h3>What did the model lose along the way?</h3>
+			<p>Learning eight tasks is not much use if the chat model forgets how to be a chat model. So after TRACE we compare the final model with the original LLaMA-2-7B-Chat on general benchmarks, and in head-to-head judgements of helpfulness and safety.</p>
+
+			<figure class="blog-figure">
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 3 from the paper.</strong> General ability before and after continual learning. MMLU, TydiQA, BoolQ and PIQA hold or improve. GSM8K and BBH drop, so multi-step math and reasoning is where the cost shows up.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="table4.png" target="_blank" rel="noopener" title="Open full size"><img src="table4.png" alt="Table 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 4 from the paper.</strong> Win / tie / lose (%) against the base chat model. Our model wins or ties 80% of helpfulness comparisons and 96% of safety comparisons, while replay, sequential LoRA and plain fine-tuning mostly lose on helpfulness.</figcaption>
+			</figure>
+
+
+			<h3>Is the low-singular-value subspace really free?</h3>
+			<p>Everything rests on one assumption: directions with small singular values can be overwritten without hurting what the model already does. We test it directly. We replace weight matrices of Granite 8B with low-rank approximations, layer by layer, and re-run the leaderboard benchmarks.</p>
+
+			<figure class="blog-figure">
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Figure 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 2 from the paper.</strong> Leaderboard scores after low-rank approximation of the value projection in selected layers of Granite 8B. Note the narrow y-axis ranges. Even removing 50% of the spectrum barely moves the scores, and only the extreme 99% cut produces visible dips.</figcaption>
+			</figure>
+
+
+			<h3>Do both ingredients matter?</h3>
+
+			<figure class="blog-figure">
+				<a href="table6.png" target="_blank" rel="noopener" title="Open full size"><img src="table6.png" alt="Table 6 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 6 from the paper.</strong> Ablation on the 5-task benchmark with LLaMA-2 7B. Halving the retention ratios, so less is protected, drops accuracy from 79.6% to 51.5%. Removing the projection entirely gives 31.2%.</figcaption>
+			</figure>
+
+			<p>Both pieces are needed. Protect too little and the old tasks get overwritten. Skip the projection and even low-rank updates interfere freely with everything learned before.</p>
 
 			<div class="blog-callout">
-				<p><strong>Limitations.</strong> Results are sensitive to the retention ratios: a badly chosen rank hurts noticeably. The subspace budget is allocated up front, which can be a problem on very long task streams. Repeated SVDs of every matrix also cost compute on large models.</p>
+				<p><strong>Limitations.</strong> Results are sensitive to the retention ratios, as the ablation shows. The subspace budget is allocated up front, which can be a problem on very long task streams. Repeated SVDs of every matrix also cost compute on large models.</p>
 			</div>
 
 			<p>The new idea is not SVD itself. It is using the decomposition to decide <em>where</em> a full-parameter update may go. That puts the method between adapters, which add parameters, and unconstrained fine-tuning, which forgets.</p>

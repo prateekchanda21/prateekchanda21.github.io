@@ -57,7 +57,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Ranked prototype weights learned by k-medoids" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Ranked prototype weights learned by k-medoids" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> k-medoids learns skewed weights. The 50 selected prototypes on CIFAR-10, ranked by learned weight and averaged over 5 runs; the largest weight is 6.5&times; the smallest.</figcaption>
 			</figure>
 
@@ -92,7 +92,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig2.png" alt="Exact versus approximate marginal gain" loading="lazy">
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Exact versus approximate marginal gain" loading="lazy"></a>
 				<figcaption><strong>Figure 2 from the paper.</strong> On MNIST: the objective value with exact versus approximate (Eq. 8) marginal gains (left), and the ratio of approximate to exact gain across greedy iterations (right), which stays close to 1.</figcaption>
 			</figure>
 
@@ -106,30 +106,62 @@
 			</ol>
 			<p class="blog-caveat">UniPROT in four steps. For very large candidate pools, a stochastic-greedy variant scores a random subset of candidates each round.</p>
 
-			<h2>Where uniformity matters</h2>
-			<p><strong>Long-tailed classification.</strong> On MNIST with skewed targets and on CIFAR-LT, prototypes are selected without labels and then used as a 1-nearest-neighbour classifier. UniPROT improves minority-class accuracy over weighted k-medoids without hurting the majority classes.</p>
+			<h2>Does uniformity actually help?</h2>
+			<h3>Minority classes</h3>
+			<p>The first test is the one that motivated the method. Prototypes are selected without labels from a long-tailed target set, then used as a 1-nearest-neighbour classifier. If the prototypes represent the data well, minority classes should be classified correctly too.</p>
+
 			<figure class="blog-figure">
-				<img src="fig3.png" alt="Minority class accuracy versus prototype count" loading="lazy">
-				<figcaption><strong>Figure 3 from the paper.</strong> Minority-class accuracy against the number of prototypes on (a) CIFAR10-LT and (b) synthetic long-tailed MNIST, for UniPROT, k-medoids and random selection. The bar charts show each target set's class distribution.</figcaption>
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Figure 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 3 from the paper.</strong> Minority-class accuracy as the number of prototypes grows, on CIFAR10-LT and synthetic long-tailed MNIST. The bar charts show how skewed each target set is. UniPROT generally sits above weighted k-medoids, and the gap is often largest when only a few prototypes are allowed.</figcaption>
 			</figure>
 
-			<p><strong>LLM minibatches.</strong> LLM training data mixes sources of very different sizes. Weighted selection tends to choose strong prototypes for big sources and weak, low-weight ones for small sources. Used as a batch selector, UniPROT gives every source a fair contribution:</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Table 3 of the paper: batch-wise selection at a 25% selection ratio, with no source labels available.</caption>
-					<thead><tr><th>Phi-3 on SuperGLUE</th><th>SST2</th><th>MultiRC</th><th>CB</th><th>Avg</th></tr></thead>
-					<tbody>
-					<tr><td>Full fine-tuning (whole batch)</td><td>93.91</td><td>86.05</td><td>92.72</td><td>90.89</td></tr>
-					<tr><td>GradNorm</td><td>87.94</td><td>57.54</td><td>69.10</td><td>71.53</td></tr>
-					<tr><td>CoLM</td><td>94.72</td><td>82.99</td><td>93.05</td><td>90.25</td></tr>
-					<tr><td>GREATS</td><td>94.81</td><td>88.42</td><td>93.12</td><td>92.12</td></tr>
-					<tr class="is-ours"><td>UniPROT-PB (ours)</td><td>94.65</td><td>88.03</td><td>94.54</td><td>92.41</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<h3>Fine-tuning LLMs on imbalanced data</h3>
+			<p>MathInstruct combines many sources of very different sizes. At each step we select half of a 128-example batch, either per source or over the whole batch, and fine-tune Phi-3.</p>
 
-			<p>In source-wise fine-tuning on MathInstruct, UniPROT is clearly ahead in both in-domain and out-of-domain evaluation. In pretraining LLaMA-3 60M and 500M on OpenWebText, it reaches lower log-perplexity than GREATS, CoLM and even full-batch training. It is also the least sensitive to how small the selection budget is.</p>
+			<figure class="blog-figure">
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> Phi-3 on MathInstruct (source-wise / batch-wise). UniPROT has the best in-domain, out-of-domain and overall averages, and is even ahead of fine-tuning on the full batch (FT).</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Figure 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 4 from the paper.</strong> Validation perplexity during training for Phi-3, Zephyr-3B and Phi-2. UniPROT reaches lower perplexity than GREATS and CoLM on all three models.</figcaption>
+			</figure>
+
+
+			<h3>When sources are unknown</h3>
+			<p>Often the data has no source labels at all. In that case we select over the whole batch:</p>
+
+			<figure class="blog-figure">
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 3 from the paper.</strong> Phi-3 on SuperGLUE with batch-wise selection at 25%. UniPROT has the best average (92.41), above full fine-tuning (90.89).</figcaption>
+			</figure>
+
+
+			<h3>Pretraining from scratch</h3>
+
+			<figure class="blog-figure">
+				<a href="fig6.png" target="_blank" rel="noopener" title="Open full size"><img src="fig6.png" alt="Figure 6 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 6 from the paper.</strong> Pretraining LLaMA-3 500M and 60M on OpenWebText for 20k steps. UniPROT-PB reaches lower log-perplexity than GREATS, CoLM and even full-batch training.</figcaption>
+			</figure>
+
+
+			<h3>How sensitive is it?</h3>
+			<p>Two knobs matter in practice: how many prototypes to keep, and how much entropic regularisation to use when solving the transport problem.</p>
+
+			<figure class="blog-figure">
+				<a href="fig5.png" target="_blank" rel="noopener" title="Open full size"><img src="fig5.png" alt="Figure 5 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 5 from the paper.</strong> Validation log-perplexity on Zephyr-3B as the prototype ratio shrinks from 50% to 12.5%. UniPROT stays stable while CoLM degrades noticeably.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> Entropic regularisation &lambda;. Smaller &lambda; makes the transport plan sharper and gives better downstream accuracy on GSM8K and SVAMP.</figcaption>
+			</figure>
+
 
 			<p class="blog-caveat">Uniformity is a choice, not a universal rule. If one class or source genuinely deserves more influence, equal weights won't express that. UniPROT is useful when selection should not silently equate "more examples in the source" with "more importance in the selected set".</p>
 

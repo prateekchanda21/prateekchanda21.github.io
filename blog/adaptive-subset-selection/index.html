@@ -59,7 +59,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Accuracy curves for different orderings of submodular functions" loading="lazy">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Accuracy curves for different orderings of submodular functions" loading="lazy"></a>
 				<figcaption><strong>Figure 1 from the paper.</strong> Order matters. On CIFAR-100, switching between diversity-based and representative selection, per step (left) or per epoch (right), changes the accuracy curve. That is why a fixed schedule is hard to choose in advance.</figcaption>
 			</figure>
 
@@ -85,7 +85,7 @@
 			</div>
 
 			<figure class="blog-figure">
-				<img src="fig5.png" alt="Distribution of selected arms over epochs" loading="lazy">
+				<a href="fig5.png" target="_blank" rel="noopener" title="Open full size"><img src="fig5.png" alt="Distribution of selected arms over epochs" loading="lazy"></a>
 				<figcaption><strong>Figure 5 from the paper.</strong> Which arms the bandit actually picks over training on CIFAR-100, under four exploration schedules (&lambda;(t), &pi;(t)). The mix shifts during training, with diversity-based functions becoming more prominent.</figcaption>
 			</figure>
 
@@ -112,24 +112,60 @@
 			</div>
 
 			<h2>What we measured</h2>
+			<h3>Fine-tuning LLMs</h3>
+			<p>We fine-tune on the LESS instruction data, keep half of every 16-example batch, and use just two random validation points to compute the reward. Evaluation is on MMLU subjects and TyDiQA.</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Table 1 of the paper; 50% of each batch selected, two validation points for the reward. OnlineSubmod matches or beats every baseline on each MMLU subject reported and on TyDiQA.</caption>
-					<thead><tr><th>Method</th><th>LLM fine-tuning (LESS data): average over MMLU subjects and TyDiQA</th></tr></thead>
-					<tbody>
-					<tr><td>MaxLoss</td><td>45.2%</td></tr>
-					<tr><td>SBERT</td><td>45.8%</td></tr>
-					<tr><td>GradNorm</td><td>46.4%</td></tr>
-					<tr><td>RhoLoss</td><td>46.4%</td></tr>
-					<tr><td>GREATS</td><td>47.8%</td></tr>
-					<tr class="is-ours"><td>OnlineSubmod</td><td>49.6%</td></tr>
-					</tbody>
-				</table>
-			</div>
+			<figure class="blog-figure">
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> Accuracy across MMLU subjects and TyDiQA. OnlineSubmod has the best average (49.6%), and matches or beats every baseline on each subject.</figcaption>
+			</figure>
 
-			<p>For vision (ResNet on CIFAR-10/100, TinyImageNet, MNIST and SVHN), the batch-wise variant gives the best or tied-best accuracy at every budget we tried. Its speed-up is close to MILO's, which relies on expensive offline pre-filtering. For example, on TinyImageNet with a 10% budget it reaches 0.553 accuracy at an 8.43&times; speed-up, against MILO's 0.532 at 8.62&times;.</p>
-			<p class="blog-caveat">The validation reward is part of the method, not free information. Its size, representativeness and evaluation cost matter. These experiments use a small validation signal on defined benchmarks; scaling the approach to large pretraining runs is future work.</p>
+
+			<figure class="blog-figure">
+				<a href="fig2.png" target="_blank" rel="noopener" title="Open full size"><img src="fig2.png" alt="Figure 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 2 from the paper.</strong> Test perplexity during training with LLaMA-2-7B on four MMLU subjects. OnlineSubmod's perplexity falls fastest and lowest.</figcaption>
+			</figure>
+
+
+			<h3>Vision: accuracy <em>and</em> speed</h3>
+			<p>Subset selection is only worthwhile if it saves time. On images we report test accuracy together with the speed-up over training on everything, at 10%, 30% and 50% budgets.</p>
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> Accuracy / speed-up with a ResNet on TinyImageNet, CIFAR-100 and CIFAR-10. OnlineSubmod has the highest or tied-highest accuracy in every column. Its speed-up is close to MILO's, which relies on an expensive offline pre-filtering step.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Figure 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 3 from the paper.</strong> Selecting individual samples rather than whole batches, across subset fractions and five datasets. OnlineSubmod is top on TinyImageNet, SVHN, CIFAR-10 and CIFAR-100 at every fraction, and competitive on MNIST.</figcaption>
+			</figure>
+
+
+			<h3>What is the bandit actually doing?</h3>
+			<p>The curriculum is not fixed in advance, so it is worth checking what it turns into. Figure 5, above, shows which selection rules get chosen over training. Two more views:</p>
+
+			<figure class="blog-figure">
+				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Figure 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 4 from the paper.</strong> The two terms of the reward (Eq. 4) over training on CIFAR-100, under different exploration schedules &lambda;(t). Term I is the alignment with validation and Term II the redundancy penalty. Their balance shifts over training, which is what lets the preferred arm change.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig6.png" target="_blank" rel="noopener" title="Open full size"><img src="fig6.png" alt="Figure 6 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 6 from the paper.</strong> How often the policy explores rather than exploits over training. The sharpness parameter &pi; controls the trade-off directly: at &pi; = 0.5 the policy almost always exploits, while at &pi; = 1.5 it mostly explores.</figcaption>
+			</figure>
+
+
+			<h3>Does the validation set need to be special?</h3>
+
+			<figure class="blog-figure">
+				<a href="table5.png" target="_blank" rel="noopener" title="Open full size"><img src="table5.png" alt="Table 5 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 5 from the paper.</strong> Final test accuracy when the validation points are the easiest, hardest, or a mix. The differences are under one point at each budget, so the reward does not depend on hand-picking a good validation set.</figcaption>
+			</figure>
+
+
+			<p class="blog-caveat">The validation reward is part of the method, not free information: its size, representativeness and evaluation cost matter. These experiments use a small validation signal on defined benchmarks; scaling the approach to large pretraining runs is future work.</p>
 
 			<p><a href="../../#publications">&larr; Back to publications</a></p>
 		</article>

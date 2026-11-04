@@ -89,36 +89,82 @@
 			<p>Independent domain-wise selection (ID) satisfies every quota, but each domain's choice ignores what the other domains contributed. The batch can end up full of near-duplicate gradients, or of gradients that cancel each other out. With a single shared objective, one domain's pick changes the value of another domain's candidates.</p>
 
 			<figure class="blog-figure">
-				<img src="fig3.png" alt="Gradient conflicts over training steps for ID and PartitionSel" loading="lazy">
+				<a href="fig3.png" target="_blank" rel="noopener" title="Open full size"><img src="fig3.png" alt="Gradient conflicts over training steps for ID and PartitionSel" loading="lazy"></a>
 				<figcaption><strong>Figure 3 from the paper.</strong> Conflicting gradient pairs (those with \(\langle g_i, g_j\rangle \lt 0\)) in the selected batch over training. Selecting inside each domain independently (ID) keeps picking far more conflicting pairs than PartitionSel.</figcaption>
 			</figure>
 
 			<p>The paper measures this directly. Over training, PartitionSel's batches contain markedly fewer conflicting gradient pairs, those with \(\langle g_i, g_j\rangle \lt 0\), than ID's. The induced per-step domain proportions \(|\hat S_t \cap V_c| / |\hat S_t|\) also act as a sample-level stand-in for learned domain weights such as DoReMi, without training a proxy model.</p>
 
 			<h2>Results</h2>
+			<h3>Math reasoning, eight domains at once</h3>
+			<p>MetaMathQA mixes several kinds of math problems: rephrased GSM8K, backward reasoning, answer augmentation and more. We fine-tune Qwen2.5-3B while selecting half of every batch, and evaluate on eight math benchmarks.</p>
 
-			<div class="blog-table-wrap">
-				<table class="blog-table">
-					<caption>Table 1 of the paper: average accuracy over NumGLUE, MMLU-Math, GSM8K, SVAMP, SimulEq, DeepMind, AQuA and SAT. The axis starts at 0.58 so the differences are visible. Per-benchmark winners vary; the gain shows up in the average.</caption>
-					<thead><tr><th>Method</th><th>Qwen2.5-3B on MetaMathQA, 50% selected: average over 8 math benchmarks</th></tr></thead>
-					<tbody>
-					<tr><td>Random</td><td>0.6014</td></tr>
-					<tr><td>GradNorm</td><td>0.6105</td></tr>
-					<tr><td>COLM</td><td>0.6119</td></tr>
-					<tr><td>IWD</td><td>0.6225</td></tr>
-					<tr><td>GREATS</td><td>0.6240</td></tr>
-					<tr><td>ID (independent)</td><td>0.6263</td></tr>
-					<tr class="is-ours"><td>PartitionSel</td><td>0.6363</td></tr>
-					</tbody>
-				</table>
-			</div>
-
-			
 			<figure class="blog-figure">
-				<img src="fig1.png" alt="Validation log-perplexity curves" loading="lazy">
-				<figcaption><strong>Figure 1 from the paper.</strong> Left: validation log-perplexity on MetaMathQA for PartitionSel, COLM, ID and GREATS. Right: PartitionSel against DoReMi's learned domain mixture.</figcaption>
+				<a href="table1.png" target="_blank" rel="noopener" title="Open full size"><img src="table1.png" alt="Table 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 1 from the paper.</strong> Downstream accuracy after fine-tuning on a 50% selection. Per-benchmark winners vary, but PartitionSel has the best average (0.6363), ahead of independent per-domain selection (ID, 0.6263) and GREATS (0.6240).</figcaption>
 			</figure>
-<p>We also fine-tune Llama-3 and run molecule-generation experiments on Mol-Instructions. There PartitionSel improves the reported BLEU and edit-distance results across reaction and retrosynthesis tasks. Ablations cover the randomised-FFT gradient features, the number of layers used for gradients, and different base models.</p>
+
+
+			<figure class="blog-figure">
+				<a href="fig1.png" target="_blank" rel="noopener" title="Open full size"><img src="fig1.png" alt="Figure 1 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 1 from the paper.</strong> Validation log-perplexity during training (left), and against DoReMi's learned domain mixture (right). PartitionSel's validation loss stays below the alternatives throughout.</figcaption>
+			</figure>
+
+
+			<h3>Does it hold across models?</h3>
+			<p>A selection rule that only works for one model family is not very useful. So we repeat the comparison on Llama-3 and on larger Qwen models.</p>
+
+			<figure class="blog-figure">
+				<a href="fig5.png" target="_blank" rel="noopener" title="Open full size"><img src="fig5.png" alt="Figure 5 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 5 from the paper.</strong> Downstream accuracy with random selection versus PartitionSel for four base models. The gain persists across both model families and as models get larger.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="table10.png" target="_blank" rel="noopener" title="Open full size"><img src="table10.png" alt="Table 10 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 10 from the paper.</strong> Llama-3.2-8B on MetaMathQA with a 12.5% subset ratio. PartitionSel has the best average (48.86), while the next-best baseline, IWD, reaches 47.93.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="table11.png" target="_blank" rel="noopener" title="Open full size"><img src="table11.png" alt="Table 11 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 11 from the paper.</strong> Qwen2.5-7B at the same 12.5% ratio. PartitionSel again has the best average (65.67).</figcaption>
+			</figure>
+
+
+			<h3>A very different domain: molecules</h3>
+			<p>Mol-Instructions asks the model to generate molecules for four tasks: description-guided design, forward reaction prediction, reagent prediction and retrosynthesis. The outputs are scored by BLEU and edit distance.</p>
+
+			<figure class="blog-figure">
+				<a href="table2.png" target="_blank" rel="noopener" title="Open full size"><img src="table2.png" alt="Table 2 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 2 from the paper.</strong> Qwen2.5-3B on Mol-Instructions, selecting 12.5% or 25% of each batch. PartitionSel has the best average BLEU at both budgets, and the lowest edit distance at 25%.</figcaption>
+			</figure>
+
+
+			<h3>Is it a substitute for learned domain weights?</h3>
+			<p>The usual way to balance domains is to learn a mixture, for example with DoReMi, which trains a proxy model to set domain weights. PartitionSel never learns weights, but its per-step selections induce a mixture anyway.</p>
+
+			<figure class="blog-figure">
+				<a href="table3.png" target="_blank" rel="noopener" title="Open full size"><img src="table3.png" alt="Table 3 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 3 from the paper.</strong> PartitionSel against DoReMi's learned mixture. It is ahead on all three benchmarks, by +4.65 points on average, without training a proxy model.</figcaption>
+			</figure>
+
+
+			<h3>What does it cost?</h3>
+			<p>Per-example gradients are the expensive part, not the selection. A fast Johnson&ndash;Lindenstrauss transform (FJLT) compresses them so that using more layers stays feasible.</p>
+
+			<figure class="blog-figure">
+				<a href="table4.png" target="_blank" rel="noopener" title="Open full size"><img src="table4.png" alt="Table 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Table 4 from the paper.</strong> Without FJLT, per-example gradients over three or more layers run out of memory; with it, five layers fit.</figcaption>
+			</figure>
+
+
+			<figure class="blog-figure">
+				<a href="fig4.png" target="_blank" rel="noopener" title="Open full size"><img src="fig4.png" alt="Figure 4 from the paper" loading="lazy"></a>
+				<figcaption><strong>Figure 4 from the paper.</strong> Time per step. The selection itself takes about 311 ms of a roughly 2.7 s step; gradients dominate. Using three layers instead of one adds about 5% time and gives lower validation log-perplexity.</figcaption>
+			</figure>
+
+
 			<p class="blog-caveat">These are benchmark results, not a promise that every domain's score rises on every task. The useful point is narrower: when a batch must cover multiple domains, choosing its examples together beats choosing them one domain at a time.</p>
 
 			<p><a href="../../#publications">&larr; Back to publications</a></p>
