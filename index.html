@@ -81,13 +81,10 @@
 					(see our <a href="https://arxiv.org/pdf/2602.11202" target="_blank">work on Interwhen</a>).
 					<hr class="intro-divider">
 					<h2 class="intro-section-title">Research Interests</h2>
-					My research develops optimization and statistical methods for improving learning under data and compute constraints. I study three decision points in the learning pipeline: what data to learn from, how models should adapt, and how to evaluate or constrain their outputs. Across these settings, I seek formulations that make task structure explicit and expose measurable trade-offs, with formal guarantees where possible:
-					<ul>
-						<li><strong>Structured data selection.</strong> I formulate subset selection as structured optimization rather than relying on fixed importance scores. Examples include <a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">bandit-guided submodular curriculum selection</a>, <a href="https://arxiv.org/abs/2606.07954" target="_blank">validation-guided gradient matching under partition-matroid budgets</a>, and <a href="https://arxiv.org/pdf/2604.10952" target="_blank">uniform prototype selection via partial optimal transport and submodular optimization</a>. I extend this perspective to <a href="https://openreview.net/forum?id=5jFAnGBUXd" target="_blank">graph-structured allocation of language-model training data</a> and <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">coreset-based personalization in federated learning</a>.</li>
-						<li><strong>Continual learning and distribution shift.</strong> Learning over time requires balancing plasticity against retention and robustness. In continual learning, <a href="https://arxiv.org/abs/2504.07097" target="_blank">Sculpting Subspaces</a> constrains full fine-tuning updates to reduce interference with previously learned tasks. For changing data, <a href="https://openreview.net/forum?id=DlL73vEtwX" target="_blank">online distributional prediction under drift and corruption</a> studies how latent cluster structure can support robust prediction. In federated learning, <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">Bayesian client-specific coresets</a> address personalization by selecting representative data for each client rather than training on each client's full dataset.</li>
-						<li><strong>Reliable and verifiable model behavior.</strong> I also study how to align model behavior with task-level requirements. <a href="https://arxiv.org/pdf/2602.11202" target="_blank">Interwhen</a> uses test-time verification to steer reasoning models; <a href="https://aclanthology.org/2024.findings-emnlp.31/" target="_blank">ClinicR</a> develops reasoning-based prompting for open-ended medical question answering; and <a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank">FairPO</a> addresses fairness in multi-label preference optimization. Together, these works treat reliability, not only predictive accuracy, as an explicit design objective.</li>
-					</ul>
-					Across these lines, my goal is to develop learning algorithms whose use of data, updates, and computation is explicit and principled: improving sample efficiency while maintaining coverage, enabling adaptation while controlling interference, and making model outputs more verifiable and aligned with the task.
+					<p class="ri-para">Large models are trained on far more data than they need, yet which data to keep is rarely chosen with care. My research treats that choice as an optimization problem and follows it from training to deployment, using tools from non-convex optimization, statistics and subset selection.</p>
+					<p class="ri-para"><strong>Efficient training.</strong> The first choice is the order in which a model sees its data. OnlineSubmod <a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">[1]</a> lets validation feedback decide, at every step, which kind of subset to train on, so the curriculum follows the model instead of a fixed schedule. Once data comes from many domains, the next question is what belongs in a single batch: PartitionSel <a href="https://arxiv.org/abs/2606.07954" target="_blank">[2]</a> chooses it jointly across domains, matching the validation gradient under a budget for each one. Asked one level up, about whole tasks, the same question leads to TaskPGM [3] and graph-structured allocation <a href="https://openreview.net/forum?id=5jFAnGBUXd" target="_blank">[4]</a>, which use affinities between tasks to divide a fine-tuning budget. And when tasks arrive one after another, the scarce budget is the model's own capacity: Sculpting Subspaces <a href="https://arxiv.org/abs/2504.07097" target="_blank">[5]</a> decides which directions a new task may update, so that it does not overwrite the old ones.</p>
+					<p class="ri-para"><strong>Fair representation.</strong> Each of these methods maximizes an average, and an average can be satisfied while small groups get almost nothing. PartitionSel's per-domain budgets were a first guard against this; UniPROT <a href="https://arxiv.org/abs/2604.10952" target="_blank">[6]</a> builds the guarantee into selection itself, giving every chosen prototype the same weight so that minority classes stay visible. CoreSet-PFedBayes <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">[7]</a> carries the idea to federated learning, where the small group is a data-poor client and each client gets a coreset of its own, and FairPO <a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank">[8]</a> carries it to labels, lifting the rare ones a classifier keeps missing without hurting the rest.</p>
+					<p class="ri-para"><strong>Reliable outputs.</strong> Choosing data well still leaves the question of what to trust. In distillation <a href="https://openreview.net/forum?id=aNtPRZYqf7" target="_blank">[9]</a>, we learn for each example how much to trust a teacher over the label, which makes the student more robust to distribution shift. Online distributional prediction <a href="https://openreview.net/forum?id=DlL73vEtwX" target="_blank">[10]</a> asks the same question of time: how much of a drifting, partly corrupted history to keep. At inference, the question moves to the model's own reasoning. Interwhen <a href="https://arxiv.org/abs/2602.11202" target="_blank">[11]</a> checks a single reasoning trajectory with verifiers built from natural-language policies, instead of sampling many and picking one, and ClinicR <a href="https://aclanthology.org/2024.findings-emnlp.31/" target="_blank">[12]</a> shows how much the reasoning matters once a medical question comes without answer options.</p>
 
 					<hr class="intro-divider">
 					<h2 class="intro-section-title">Earlier Experience</h2>
@@ -108,6 +105,226 @@
 	<div class="year" id="publications">Select Publications &amp; Preprints</div>
 
 	<ul>
+	 <li>
+			<span class="publications">Spectral-Aware Gradient Matching: Theory and Algorithms for Minibatch Selection</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>COLT 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Bayesian Pseudocoresets with Rényi alpha-KKL Divergence</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Preconditioning impacts Gradient Matching based subset selection</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Bayesian Coresets under Partition Matroid Constraints</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Optimal Coresets under Online Approximate K-Clustering</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Stochastic Submodular Maximization under Noisy Regime</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Learning Dynamic Submodular Composition</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Debiasing in the label space using MRL</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>NeurIPS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<a href="https://openreview.net/forum?id=lWNRa6JetZ" class="publications" target="_blank">Gradient Matching Meets Muon: Efficient Online Minibatch Selection for Language Models</a>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>, Riddhankur Sarkar, Geetika, Shivani Singh Chauhan, Bapi Chatterjee, Ganesh Ramakrishnan
+				<br>
+				<strong>ICML 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="https://openreview.net/forum?id=lWNRa6JetZ" target="_blank">openreview</a>]
+				[<a href="https://openreview.net/pdf?id=lWNRa6JetZ" target="_blank">pdf</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">On Divergent Measures of Gradient Coresets</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>ICML 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">DualNormMatch: Gradient Matching in the Dual Space</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>ICML 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Joint Diffusion Weakly-Submodular Distillation Coresets</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>ICML 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">Orthogonalization seeks better samples in gradient matching</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>
+				<br>
+				<strong>ICML 2027 Position Paper</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="#" target="_blank">openreview</a>]
+				[<a href="#" target="_blank">pdf</a>]
+				[<a href="#" target="_blank">arxiv</a>]
+				[<a href="#" target="_blank">code</a>]
+			</span>
+		</li>
+	 <li>
+			<a href="https://openreview.net/forum?id=aNtPRZYqf7" class="publications" target="_blank">On the Efficacy of Intermediate Representations in Knowledge Distillation for Robust Generalization</a>
+			<span class="collaborators">
+				Vaibhav Singh, <u>Prateek Chanda</u>, Ganesh Ramakrishnan
+				<br>
+				<span class="publication-meta-row"><strong>ICLR 2027</strong></span>
+				<span class="publication-workshops">GlobalSouthML @ ICML 2026</span>
+			</span>
+			<span class="code_blog">
+				[<a href="https://openreview.net/forum?id=aNtPRZYqf7" target="_blank">openreview</a>]
+				[<a href="https://openreview.net/pdf?id=aNtPRZYqf7" target="_blank">pdf</a>]
+				[<a href="https://github.com/efficiency-learning/ood-distillation" target="_blank">code</a>]
+				[<a href="https://icml.cc/virtual/2026/78335" target="_blank">ICML poster</a>]
+			</span>
+		</li>
+	 <li>
+			<span class="publications">From Task Affinities to Optimal Allocations: Probabilistic Graphical Modelling for Supervised Finetuning</span>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>, Saral Sureka, Krishnateja Killamsetty, Ganesh Ramakrishnan
+				<br>
+				<strong>AISTATS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="https://openreview.net/group?id=AISTATS.org/2027/Conference" target="_blank">OpenReview</a>]
+				[<a href="https://arxiv.org/abs/2611.10389" target="_blank">arxiv</a>]
+				[<a href="https://arxiv.org/pdf/2611.10389" target="_blank">pdf</a>]
+			</span>
+		</li>
+	 <li>
+			<a href="https://openreview.net/forum?id=hCFqno9Rka" class="publications" target="_blank">Fair Coresets via Generalized-Constrained Partial Optimal Transport</a>
+			<span class="collaborators">
+				<u>Prateek Chanda</u>, Ganesh Ramakrishnan
+				<br>
+				<strong>AISTATS 2027</strong>
+			</span>
+			<span class="code_blog">
+				[<a href="https://openreview.net/forum?id=hCFqno9Rka" target="_blank">openreview</a>]
+				[<a href="https://openreview.net/pdf?id=hCFqno9Rka" target="_blank">pdf</a>]
+			</span>
+		</li>
 	 <li>
 			<a href="https://arxiv.org/pdf/2602.11202" class="publications" target="_blank">Interwhen: A Generalizable Framework for Verifiable Reasoning with Test-time Monitors</a>
 			<span class="collaborators">

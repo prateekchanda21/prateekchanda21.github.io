@@ -394,6 +394,8 @@ ul {
 }
 
 .publications {
+  display: inline;
+  color: #a00;
   margin-left: -.5em;
 }
 
@@ -685,4 +687,8 @@ ul {
 @media (max-width: 600px) {
   .news-list li { padding-left: 0; }
   .news-date { display: block; position: static; width: auto; }
+}
+
+.ri-para {
+  margin: .55em 0 .75em;
 }
