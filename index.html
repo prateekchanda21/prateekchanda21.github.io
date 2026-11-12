@@ -82,13 +82,11 @@
 					(see our <a href="https://arxiv.org/pdf/2602.11202" target="_blank">work on Interwhen</a>).
 					<hr class="intro-divider">
 					<h2 class="intro-section-title">Research Interests</h2>
-					My research develops optimization and statistical methods for improving learning under data and compute constraints. I study three decision points in the learning pipeline: what data to learn from, how models should adapt, and how to evaluate or constrain their outputs. Across these settings, I seek formulations that make task structure explicit and expose measurable trade-offs, with formal guarantees where possible:
-					<ul>
-						<li><strong>Structured data selection.</strong> I formulate subset selection as structured optimization rather than relying on fixed importance scores. Examples include <a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">bandit-guided submodular curriculum selection</a>, <a href="https://arxiv.org/abs/2606.07954" target="_blank">validation-guided gradient matching under partition-matroid budgets</a>, and <a href="https://arxiv.org/pdf/2604.10952" target="_blank">uniform prototype selection via partial optimal transport and submodular optimization</a>. I extend this perspective to <a href="https://openreview.net/forum?id=5jFAnGBUXd" target="_blank">graph-structured allocation of language-model training data</a> and <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">coreset-based personalization in federated learning</a>.</li>
-						<li><strong>Continual learning and distribution shift.</strong> Learning over time requires balancing plasticity against retention and robustness. In continual learning, <a href="https://arxiv.org/abs/2504.07097" target="_blank">Sculpting Subspaces</a> constrains full fine-tuning updates to reduce interference with previously learned tasks. For changing data, <a href="https://openreview.net/forum?id=DlL73vEtwX" target="_blank">online distributional prediction under drift and corruption</a> studies how latent cluster structure can support robust prediction. In federated learning, <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">Bayesian client-specific coresets</a> address personalization by selecting representative data for each client rather than training on each client's full dataset.</li>
-						<li><strong>Reliable and verifiable model behavior.</strong> I also study how to align model behavior with task-level requirements. <a href="https://arxiv.org/pdf/2602.11202" target="_blank">Interwhen</a> uses test-time verification to steer reasoning models; <a href="https://aclanthology.org/2024.findings-emnlp.31/" target="_blank">ClinicR</a> develops reasoning-based prompting for open-ended medical question answering; and <a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank">FairPO</a> addresses fairness in multi-label preference optimization. Together, these works treat reliability, not only predictive accuracy, as an explicit design objective.</li>
-					</ul>
-					Across these lines, my goal is to develop learning algorithms whose use of data, updates, and computation is explicit and principled: improving sample efficiency while maintaining coverage, enabling adaptation while controlling interference, and making model outputs more verifiable and aligned with the task.
+					<p class="ri-para">Language models are trained, adapted and deployed on tight budgets of data and compute, and my research asks <b>where those budgets are best spent</b>. During training, <em>which few examples can stand in for a large batch?</em> During adaptation and inference, <em>when does an extra signal, such as a teacher or a verifier, change the outcome?</em> I turn these questions into algorithms using <b>submodular optimization</b>, <b>non-convex optimization</b> and <b>optimal transport</b>, aiming for methods that are cheap to run and come with guarantees.</p>
+					<p class="ri-para"><strong>Data-efficient training and adaptation.</strong> The first question is <em>order</em>. OnlineSubmod <a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">[1]</a> treats curriculum design as a <em>bandit over submodular objectives</em>, steered by validation feedback. Within a batch, PartitionSel <a href="https://arxiv.org/abs/2606.07954" target="_blank">[2]</a> trains on a fraction of the examples while <em>keeping the full batch's gradient</em>, and per-domain budgets limit interference between domains. One level up, TaskPGM <a href="https://arxiv.org/abs/2611.10389" target="_blank">[3]</a> and graph-structured allocation <a href="https://openreview.net/forum?id=5jFAnGBUXd" target="_blank">[4]</a> derive fine-tuning mixtures from <em>affinities between tasks</em>. When tasks arrive one after another, the scarce resource is <em>the model's own capacity</em>: Sculpting Subspaces <a href="https://arxiv.org/abs/2504.07097" target="_blank">[5]</a> restricts new updates to directions that leave prior knowledge intact. I am now studying how spectral optimizers such as Muon change what a subset has to preserve.</p>
+					<p class="ri-para"><strong>Fair coverage.</strong> <em>A subset can match the data on average and still lose its smallest groups.</em> UniPROT <a href="https://arxiv.org/abs/2604.10952" target="_blank">[6]</a> guards against this by selecting equally weighted prototypes through <em>partial optimal transport</em>, with a (1&minus;1/e) guarantee. The same failure appears as data-poor clients in federated learning, which CoreSet-PFedBayes <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">[7]</a> addresses, and as rare labels in multi-label classification, which FairPO <a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank">[8]</a> addresses.</p>
+					<p class="ri-para"><strong>Robust generalization and verifiable reasoning.</strong> Choosing an example settles <em>what</em> to learn from, but not <em>how</em>. In distillation <a href="https://openreview.net/forum?id=aNtPRZYqf7" target="_blank">[9]</a>, the student's early layer representations decide, example by example, <em>how far to follow the teacher over the label</em>. Under distribution drift <a href="https://openreview.net/forum?id=DlL73vEtwX" target="_blank">[10]</a>, the corresponding choice is <em>how much weight older data deserves</em>. At inference, the extra signal is a <em>verifier</em>. InterWhen <a href="https://arxiv.org/abs/2602.11202" target="_blank">[11]</a> checks reasoning while it is being produced and corrects mistakes before later steps inherit them. A question I keep returning to is <em>which steps are worth checking when verification itself is costly</em>.</p>
+					<p class="ri-para">More details and future directions are in my <a href="research_statement_prateek_chanda.pdf" target="_blank"><b>research statement</b></a>.</p>
 
 					<hr class="intro-divider">
 					<h2 class="intro-section-title">Earlier Experience</h2>
@@ -111,18 +109,21 @@
 	<ul>
 	 <li>
 			<span class="publications pub-wip">Coreset Selection under Generalized Fairness Constrained Partial Optimal Transport</span>
+			<span class="pub-tags"><span class="tag tag-data-selection">Data Selection</span><span class="tag tag-fairness">Fairness</span><span class="tag tag-optimal-transport">Optimal Transport</span></span>
 			<span class="collaborators">
 				<span class="publication-meta-row"><strong>Preprint</strong><span class="pub-status">Under preparation</span></span>
 			</span>
 		</li>
 	 <li>
 			<span class="publications pub-wip">Gradient Matching Coresets for Muon Optimizer</span>
+			<span class="pub-tags"><span class="tag tag-pre-training">Pre-training</span><span class="tag tag-data-selection">Data Selection</span><span class="tag tag-optimizers">Optimizers</span></span>
 			<span class="collaborators">
 				<span class="publication-meta-row"><strong>Preprint</strong><span class="pub-status">Under preparation</span></span>
 			</span>
 		</li>
 	 <li>
 			<a href="https://arxiv.org/abs/2611.10389" class="publications" target="_blank">From Task Affinities to Optimal Allocations: Probabilistic Graphical Modelling for Supervised Finetuning</a>
+			<span class="pub-tags"><span class="tag tag-post-training">Post-training</span><span class="tag tag-data-mixtures">Data Mixtures</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>, Saral Sureka, Krishnateja Killamsetty, Ganesh Ramakrishnan
 				<br>
@@ -135,6 +136,7 @@
 		</li>
 	 <li>
 			<a href="https://arxiv.org/pdf/2602.11202" class="publications" target="_blank">Interwhen: A Generalizable Framework for Verifiable Reasoning with Test-time Monitors</a>
+			<span class="pub-tags"><span class="tag tag-inference">Inference</span><span class="tag tag-reasoning">Reasoning</span></span>
 			<span class="collaborators">
 				Vishak K Bhat*, <u>Prateek Chanda</u>*, Vijval Ekbote*, Ashmit Khandelwal, Maitreyi Swaroop, Vineeth N. Balasubramanian, Subbarao Kambhampati, Nagarajan Natarajan, Amit Sharma
 				<br>
@@ -150,6 +152,7 @@
 		
 		<li>
 			<a href="https://openreview.net/forum?id=5jFAnGBUXd" class="publications" target="_blank">From Task Graphs to Training Mixtures: Graph-Structured Data Allocation for Language Models</a>
+			<span class="pub-tags"><span class="tag tag-post-training">Post-training</span><span class="tag tag-data-mixtures">Data Mixtures</span><span class="tag tag-graph-learning">Graph Learning</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>, Saral Sureka, Ganesh Ramakrishnan
 				<br>
@@ -163,6 +166,7 @@
 		<li>
 
 			<a href="https://arxiv.org/abs/2606.18778" class="publications" target="_blank">Online Distributional Prediction via Latent Cluster Geometry Under Drift and Corruption</a>
+			<span class="pub-tags"><span class="tag tag-online-learning">Online Learning</span><span class="tag tag-distribution-shift">Distribution Shift</span></span>
 			<span class="collaborators">
 			    Navyansh Mahla, <u>Prateek Chanda</u>, Ganesh Ramakrishnan
 			    <br>
@@ -177,6 +181,7 @@
 
 		<li>
 			<a href="https://arxiv.org/abs/2606.07954" class="publications" target="_blank">Minibatch Selection for Language Models via Partition Matroid Constrained Gradient Matching</a>
+			<span class="pub-tags"><span class="tag tag-pre-training">Pre-training</span><span class="tag tag-data-selection">Data Selection</span></span>
 			<span class="collaborators">
 				Prayas Agrawal*, <u>Prateek Chanda</u>*, Ishita Khatri, Ganesh Ramakrishnan, Bamdev Mishra, Pratik Jawanpuria
 				<br>
@@ -193,6 +198,7 @@
 
 		<li>
 			<a href="https://arxiv.org/abs/2604.10952" class="publications" target="_blank">UniPROT: UNIform PRototype Selection via Partial Optimal Transport with Submodular Guarantees</a>
+			<span class="pub-tags"><span class="tag tag-data-selection">Data Selection</span><span class="tag tag-fairness">Fairness</span><span class="tag tag-optimal-transport">Optimal Transport</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>*, Prayas Agrawal*, Karthik S. Gurumoorthy, Ganesh Ramakrishnan, Bamdev Mishra, Pratik Jawanpuria
 				<br>
@@ -208,6 +214,7 @@
 
 		<li>
 			<a href="https://arxiv.org/abs/2504.07097" class="publications" target="_blank">Sculpting Subspaces: Constrained Full Fine-Tuning in LLMs for Continual Learning</a>
+			<span class="pub-tags"><span class="tag tag-post-training">Post-training</span><span class="tag tag-continual-learning">Continual Learning</span></span>
 			<span class="collaborators">
 				Nikhil Shivakumar Nayak, Krishnateja Killamsetty, Ligong Han, Abhishek Bhandwaldar, <u>Prateek Chanda</u>, Kai Xu, Hao Wang, Aldo Pareja, Oleg Silkin, Mustafa Eyceoz, Akash Srivastava
 				<br>
@@ -224,6 +231,7 @@
 
 		<li>
 			<a href="https://opt-ml.org/papers/2025/paper102.pdf" class="publications" target="_blank">FairPO: Fair Preference Optimization for Multi-Label Learning</a>
+			<span class="pub-tags"><span class="tag tag-fairness">Fairness</span><span class="tag tag-preference-optimization">Preference Optimization</span></span>
 			<span class="collaborators">
 				Soumen Kumar Mondal, <u>Prateek Chanda</u>, Akshit Varmora, Ganesh Ramakrishnan
 				<br>
@@ -240,6 +248,7 @@
 
 		<li>
 			<a href="https://openreview.net/forum?id=Y1UVWWWGKB" class="publications" target="_blank">Bandit Guided Submodular Curriculum for Adaptive Subset Selection</a>
+			<span class="pub-tags"><span class="tag tag-data-selection">Data Selection</span><span class="tag tag-curriculum-learning">Curriculum Learning</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>*, Prayas Agrawal*, Lokesh Reddy Polu, Saral Sureka, Atharv Kshirsagar, Ganesh Ramakrishnan
 				<br>
@@ -256,6 +265,7 @@
 
 		<li>
 			<a href="https://aclanthology.org/2024.findings-emnlp.31/" class="publications" target="_blank">Few Shot Chain-of-Thought Driven Reasoning to Prompt LLMs for Open Ended Medical Question Answering</a>
+			<span class="pub-tags"><span class="tag tag-inference">Inference</span><span class="tag tag-reasoning">Reasoning</span><span class="tag tag-medical-nlp">Medical NLP</span></span>
 			<span class="collaborators">
 				Saeel Sandeep Nachane*, Ojas Gramopadhye*, <u>Prateek Chanda</u>*, Ganesh Ramakrishnan, Kshitij Sharad Jadhav, Yatin Nandwani, Dinesh Raghu, Sachindra Joshi
 				<br>
@@ -270,6 +280,7 @@
 
 		<li>
 			<a href="https://openreview.net/forum?id=uz7d2N2zul" class="publications" target="_blank">Bayesian Coreset Optimization for Personalized Federated Learning</a>
+			<span class="pub-tags"><span class="tag tag-federated-learning">Federated Learning</span><span class="tag tag-data-selection">Data Selection</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>, Shrey Modi, Ganesh Ramakrishnan
 				<br>
@@ -287,6 +298,7 @@
 
 		<li>
 			<a href="#" class="publications" target="_blank">Would I Regret Later Joining This Community? Using Temporal Neighborhood Information for Community Retention in a Game Theoretic Community Detection Framework</a>
+			<span class="pub-tags"><span class="tag tag-social-networks">Social Networks</span><span class="tag tag-game-theory">Game Theory</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>, Susanta Chakrabarty
 				<br>
@@ -303,6 +315,7 @@
 
 		<li>
 			<a href="#" class="publications" target="_blank">Robust Deep Reinforcement Learning Control Framework</a>
+			<span class="pub-tags"><span class="tag tag-reinforcement-learning">Reinforcement Learning</span></span>
 			<span class="collaborators">
 				<u>Prateek Chanda</u>
 				<br>
