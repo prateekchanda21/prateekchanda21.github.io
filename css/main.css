@@ -692,3 +692,44 @@ ul {
 .ri-para {
   margin: .55em 0 .75em;
 }
+
+.pub-tags {
+  display: inline;
+  margin-left: .4em;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 0 .55em;
+  margin: 0 .25em .15em 0;
+  border-radius: 3px;
+  vertical-align: 2px;
+  white-space: nowrap;
+}
+.tag-pre-training { background: #e3eefc; color: #1d4f91; }
+.tag-post-training { background: #ece6fb; color: #5b3aa6; }
+.tag-inference { background: #ddf3f0; color: #17695f; }
+.tag-data-selection { background: #fde8e4; color: #9c2f1c; }
+.tag-data-mixtures { background: #fdeedd; color: #94530f; }
+.tag-fairness { background: #fbe4ef; color: #9a2862; }
+.tag-optimal-transport { background: #e6edf3; color: #3c5468; }
+.tag-optimizers { background: #e5f0fb; color: #2a5f8c; }
+.tag-reasoning { background: #e2f3e6; color: #276b3a; }
+.tag-graph-learning { background: #eef0d9; color: #5b6315; }
+.tag-online-learning { background: #e0f1f8; color: #1f6280; }
+.tag-distribution-shift { background: #f6eadb; color: #7d5320; }
+.tag-continual-learning { background: #fff1d6; color: #8a5a00; }
+.tag-preference-optimization { background: #f1e4f6; color: #7a3591; }
+.tag-curriculum-learning { background: #e7f4dc; color: #3f6d1a; }
+.tag-medical-nlp { background: #fce5e5; color: #a12b2b; }
+.tag-federated-learning { background: #dff2ea; color: #1c6a4a; }
+.tag-social-networks { background: #ececec; color: #4a4a4a; }
+.tag-game-theory { background: #efe9e1; color: #5e4b33; }
+.tag-reinforcement-learning { background: #e4e8f7; color: #36478f; }
+.tag-bayesian-inference { background: #e8e6f4; color: #463c86; }
+.tag-submodular-optimization { background: #f9e9de; color: #8a4518; }
+.tag-generative-models { background: #f3e3f0; color: #803a73; }
+.tag-knowledge-distillation { background: #e0eff4; color: #24606f; }
