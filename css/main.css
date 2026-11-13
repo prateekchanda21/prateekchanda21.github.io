@@ -733,3 +733,53 @@ ul {
 .tag-submodular-optimization { background: #f9e9de; color: #8a4518; }
 .tag-generative-models { background: #f3e3f0; color: #803a73; }
 .tag-knowledge-distillation { background: #e0eff4; color: #24606f; }
+
+.section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .2em 1.1em;
+  padding: .55em 0;
+  margin: 0 0 1.2em;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.section-nav a {
+  color: #555;
+}
+
+.section-nav a:hover,
+.section-nav a.active {
+  color: #a00;
+  text-decoration: none;
+}
+
+.section-nav a.active {
+  font-weight: 500;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+[id] {
+  scroll-margin-top: 56px;
+}
+
+@media (max-width: 600px) {
+  .section-nav {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 4px;
+  }
+  .section-nav a {
+    white-space: nowrap;
+  }
+}
