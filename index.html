@@ -31,7 +31,7 @@
 
 
 	<body>
-		<div class="container wrapper">
+		<div class="container wrapper" id="top">
 			<div class="header">
 	<img src=prateekChanda_profile.jpg class="profile_image">
 	<h1 class="site-title">Prateek Chanda</h1>
@@ -54,19 +54,27 @@
 		</nav>
 	</div>
 
-	<nav class="nav">
-		<ul class="flat">
-			
-		</ul>
-	</nav>
 </div>
+
+	<nav class="section-nav" aria-label="Sections">
+		<a href="#top">About</a>
+		<a href="#experience">Experience</a>
+		<a href="#research">Research</a>
+		<a href="#publications">Publications</a>
+		<a href="#awards">Awards</a>
+		<a href="#talks">Talks</a>
+		<a href="#service">Service</a>
+		<a href="#teaching">Teaching</a>
+		<a href="#software">Software</a>
+		<a href="#photos">Photos</a>
+	</nav>
 
 			<div class="introduction">
 					I am a 5th year Ph.D. student at the <a href="https://www.iitb.ac.in/" target="_blank">Indian Institute of Technology Bombay</a>, CSE Department,
 				advised by <a href="https://pratikjawanpuria.com/" target="_blank">Pratik Jawanpuria</a> and <a href="https://www.cse.iitb.ac.in/~ganesh/" target="_blank">Ganesh Ramakrishnan</a>,
 					working on large-scale efficient machine learning, supported by the <b>Prime Minister Research Fellowship</b> (2022&ndash;2027) and the <b>Microsoft PhD Award</b> (2025&ndash;2026); I was also nominated by IIT Bombay's CSE department for the <b>2026 Walmart PhD Fellowship</b> (declined due to my existing PMRF commitment).
 					<hr class="intro-divider">
-					<h2 class="intro-section-title">Research &amp; Industry Experience</h2>
+					<h2 class="intro-section-title" id="experience">Research &amp; Industry Experience</h2>
 					I have been a <b>Student Researcher (twice)</b> at <a href="https://research.google/teams/india-research-lab/" target="_blank"><b>Google DeepMind India</b></a>,
 					hosted by <a href="https://sites.google.com/site/pshenoyuw/" target="_blank">Pradeep Shenoy</a> during (<a class="image-preview" href="google%20first%20certificate.jpg"><i>July 2023&ndash;Nov 2023</i></a> &amp; <a class="image-preview" href="googleSecondCertificate.jpg"><i>Dec 2023&ndash;May 2024</i></a>),
 					working on Efficient Pretraining of Large Language Models and Knowledge Distillation for Large Language Models for <b>proprietary Gemini and LaMDA models</b>.
@@ -81,7 +89,7 @@
 					<a href="https://rakaposhi.eas.asu.edu/" target="_blank">Subbarao Kambhampati</a>
 					(see our <a href="https://arxiv.org/pdf/2602.11202" target="_blank">work on Interwhen</a>).
 					<hr class="intro-divider">
-					<h2 class="intro-section-title">Research Interests</h2>
+					<h2 class="intro-section-title" id="research">Research Interests</h2>
 					<p class="ri-para">Language models are trained, adapted and deployed on tight budgets of data and compute, and my research asks <b>where those budgets are best spent</b>. During training, <em>which few examples can stand in for a large batch?</em> During adaptation and inference, <em>when does an extra signal, such as a teacher or a verifier, change the outcome?</em> I turn these questions into algorithms using <b>submodular optimization</b>, <b>non-convex optimization</b> and <b>optimal transport</b>, aiming for methods that are cheap to run and come with guarantees.</p>
 					<p class="ri-para"><strong>Data-efficient training and adaptation.</strong> The first question is <em>order</em>. OnlineSubmod <a href="https://openreview.net/forum?id=Y1UVWWWGKB" target="_blank">[1]</a> treats curriculum design as a <em>bandit over submodular objectives</em>, steered by validation feedback. Within a batch, PartitionSel <a href="https://arxiv.org/abs/2606.07954" target="_blank">[2]</a> trains on a fraction of the examples while <em>keeping the full batch's gradient</em>, and per-domain budgets limit interference between domains. One level up, TaskPGM <a href="https://arxiv.org/abs/2611.10389" target="_blank">[3]</a> and graph-structured allocation <a href="https://openreview.net/forum?id=5jFAnGBUXd" target="_blank">[4]</a> derive fine-tuning mixtures from <em>affinities between tasks</em>. When tasks arrive one after another, the scarce resource is <em>the model's own capacity</em>: Sculpting Subspaces <a href="https://arxiv.org/abs/2504.07097" target="_blank">[5]</a> restricts new updates to directions that leave prior knowledge intact. I am now studying how spectral optimizers such as Muon change what a subset has to preserve.</p>
 					<p class="ri-para"><strong>Fair coverage.</strong> <em>A subset can match the data on average and still lose its smallest groups.</em> UniPROT <a href="https://arxiv.org/abs/2604.10952" target="_blank">[6]</a> guards against this by selecting equally weighted prototypes through <em>partial optimal transport</em>, with a (1&minus;1/e) guarantee. The same failure appears as data-poor clients in federated learning, which CoreSet-PFedBayes <a href="https://openreview.net/forum?id=uz7d2N2zul" target="_blank">[7]</a> addresses, and as rare labels in multi-label classification, which FairPO <a href="https://opt-ml.org/papers/2025/paper102.pdf" target="_blank">[8]</a> addresses.</p>
@@ -335,7 +343,7 @@
 	<p style="font-size:0.85em; color:#555;">* denotes equal contribution.</p>
 
 	<br>
-	<div class="year">Selected Awards &amp; Honours</div>
+	<div class="year" id="awards">Selected Awards &amp; Honours</div>
 
 	<ul style="margin-bottom:0">
 		<li style="margin-bottom:2px">Recognized among <strong>India’s Top 100 AI/ML Researchers</strong>, recognized by <strong>Amazon</strong> for research excellence in AI/ML. <a href="https://app.brazenconnect.com/a/asp-sdengineering/e/0JAy0" target="_blank">Learn more</a>.</li>
@@ -347,20 +355,20 @@
 	</ul>
 
 	<br>
-	<div class="year">Talks &amp; Presentations</div>
+	<div class="year" id="talks">Talks &amp; Presentations</div>
 	<div style="font-size:0.85em; line-height:1.6em; margin-top:6px;">
 		<div><strong>June 2025</strong>: Presented research on Bandit Guided Adaptive Subset Selection at <a href="https://www.linkedin.com/posts/sunayana_microsoft-forms-activity-7331592921118392321-TNPz" target="_blank">Microsoft Research India Academic Summit 2025</a>.</div>
 		<div><strong>November 2024</strong>: Gave a talk at <a href="https://mlcollective.org/events/research-jam-25/" target="_blank">ML Collective Research Jam #25</a> titled <a href="https://docs.google.com/presentation/d/1LA_8QlZD_2zScZknXFqPl0U-SfpjmxZqU9m2HYSZRRA/edit?usp=sharing" target="_blank">Adaptive Dimension towards Group Distributed Robust Optimization</a>.</div>
 	</div>
 
 	<br>
-	<div class="year">Service</div>
+	<div class="year" id="service">Service</div>
 
 	<p><strong>Program Committee:</strong> ICLR 2027 &nbsp;|&nbsp; AISTATS 2027 &nbsp;|&nbsp; AAAI 2027 &nbsp;|&nbsp; LoG 2026 &nbsp;|&nbsp; NeurIPS 2026 &nbsp;|&nbsp; ICLR 2026 (<strong style="color:#c62828;">Top 200 Reviewer</strong>) &nbsp;|&nbsp; ICML 2026 (<strong style="color:#c62828;">Gold Reviewer Award</strong>) &nbsp;|&nbsp; NeurIPS 2025 &nbsp;|&nbsp; ICLR 2025 &nbsp;|&nbsp; AAAI 2025 &nbsp;|&nbsp; LoG 2024</p>
 	<p><strong>Journal Reviewer:</strong> TMLR 2026 &nbsp;|&nbsp; TMLR 2025</p>
 
 	<br>
-	<div class="year">Teaching</div>
+	<div class="year" id="teaching">Teaching</div>
 	<table style="font-size:0.85em; line-height:1.7em; border-collapse:collapse; margin-top:6px;">
 		<tr><td style="white-space:nowrap; padding-right:16px; vertical-align:top;"><strong>2026 Autumn</strong></td><td>CS 769: Optimization in Machine Learning <span style="color:#777">(Ganesh Ramakrishnan)</span> PMRF TA-ship: Python for Data Science <span style="color:#777">(NPTEL)</span> PMRF TA-ship: Online Workshop on Modern Machine Learning and Generative AI <span style="color:#777">(Rajarambapu Institute of Technology, virtual online mode)</span></td></tr>
 		<tr><td style="white-space:nowrap; padding-right:16px; vertical-align:top;"><strong>2026 Spring</strong></td><td>CS 218: Design and Analysis of Algorithms <span style="color:#777;">(Sujoy Bhore)</span></td></tr>
@@ -372,7 +380,7 @@
 	</table>
 
 	<br>
-	<div class="year">Software</div>
+	<div class="year" id="software">Software</div>
 	<div style="font-size:0.85em; line-height:1.6em; margin-top:6px;">
 		<div><a href="https://efficiency-learning.github.io/" target="_blank">Efficiency Learning</a> &nbsp; Research project on efficient ML pretraining and learning.</div>
 		<div><a href="https://github.com/microsoft/interwhen" target="_blank">Interwhen</a> &nbsp; Generalizable framework for verifiable reasoning with test-time monitors (Microsoft Research).</div>
@@ -380,7 +388,7 @@
 	</div>
 
 	<br>
-	<div class="year">Miscellaneous (Photos from Conference visits)</div>
+	<div class="year" id="photos">Miscellaneous (Photos from Conference visits)</div>
 	<p style="font-size:0.85em; margin-top:6px;">A few scenic views and places from recent trips. Select an album to browse its photos.</p>
 	<div class="trip-albums">
 		<details class="trip-album">
@@ -588,7 +596,19 @@ if (!doNotTrack) {
 	feather.replace()
 
 </script>
-	</body>
+		<script>
+	(function(){
+		var links=[].slice.call(document.querySelectorAll('.section-nav a'));
+		var secs=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+		function onScroll(){
+			var y=window.scrollY+90, k=0;
+			secs.forEach(function(el,i){ if(el && el.getBoundingClientRect().top+window.scrollY<=y) k=i; });
+			links.forEach(function(a,i){ a.classList.toggle('active', i===k); });
+		}
+		window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+	})();
+	</script>
+</body>
 
 <a href="https://clustrmaps.com/site/1bd2q" title="Visit tracker"><img src="//www.clustrmaps.com/map_v2.png?d=dh57F17W0qZTvxZcbjRNVCFNEHdejsEBbdOAamZeGb4&cl=ffffff" style="display: none;"></a>
 

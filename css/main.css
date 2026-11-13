@@ -739,3 +739,53 @@ ul {
 .tag-social-networks { background: #ececec; color: #4a4a4a; }
 .tag-game-theory { background: #efe9e1; color: #5e4b33; }
 .tag-reinforcement-learning { background: #e4e8f7; color: #36478f; }
+
+.section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .2em 1.1em;
+  padding: .55em 0;
+  margin: 0 0 1.2em;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.section-nav a {
+  color: #555;
+}
+
+.section-nav a:hover,
+.section-nav a.active {
+  color: #a00;
+  text-decoration: none;
+}
+
+.section-nav a.active {
+  font-weight: 500;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+[id] {
+  scroll-margin-top: 56px;
+}
+
+@media (max-width: 600px) {
+  .section-nav {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 4px;
+  }
+  .section-nav a {
+    white-space: nowrap;
+  }
+}
